@@ -46,12 +46,12 @@ Configure your OpenAI API key using one of these methods:
 - **Streamlit Secrets**: Add to `secrets.toml`
   ```toml
   OPENAI_API_KEY = "your-api-key-here"
-  SERP_API_Key = "your-api-key-here"
+  SERPAPI_API_KEY = "your-api-key-here"
   ```
 - **Environment Variable**: 
   ```bash
   export OPENAI_API_KEY="your-api-key-here"
-  export SERP_API_KEY = "your-api-key-here"
+  export SERPAPI_API_KEY = "your-api-key-here"
   ```
 
 ### 2. Installation
