@@ -51,7 +51,7 @@ Configure your OpenAI API key using one of these methods:
 - **Environment Variable**: 
   ```bash
   export OPENAI_API_KEY="your-api-key-here"
-  SERP_API_KEY = "your-api-key-here"
+  export SERP_API_KEY = "your-api-key-here"
   ```
 
 ### 2. Installation
