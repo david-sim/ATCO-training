@@ -67,6 +67,29 @@ def parse_json_response(response: str) -> Optional[dict]:
         return None
 
 
+def remove_postal_code(address):
+    """
+    Remove postal code from Singapore address.
+    Handles various postal code formats: 'Singapore 123456', 'S 123456', or just '123456'.
+    
+    Args:
+        address: The original address string
+        
+    Returns:
+        Address string without postal code
+    """
+    # Remove 'Singapore XXXXXX' pattern
+    address = re.sub(r'\s+Singapore\s+\d{6}$', '', address, flags=re.IGNORECASE)
+    
+    # Remove 'S XXXXXX' pattern  
+    address = re.sub(r'\s+S+\d{6}$', '', address, flags=re.IGNORECASE)
+    
+    # Remove standalone 6-digit postal code at the end
+    address = re.sub(r'\s+\d{6}$', '', address)
+    
+    return address.strip()
+
+
 def generate_variant(address):
     """
     Generate a variant address format for shophouse addresses.
@@ -394,9 +417,11 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
                 address_search_query_variant = f"{clean_address}"
                 log_progress(f"🔄 Using fallback variant for shophouse: 'address {clean_address}'")
         else:
-            # For industrial, use the standard variant
-            address_search_query_variant = f"address {clean_address}"
-        
+            # For industrial, use address without postal code
+            clean_address_no_postal = remove_postal_code(clean_address)
+            address_search_query_variant = f"{clean_address_no_postal}"
+            print(f"🔄 Using industrial address variant: '{address_search_query_variant}'")
+
         address_search_results_raw_variant = google_search_entity(address_search_query_variant)
 
         # Check if searches failed
