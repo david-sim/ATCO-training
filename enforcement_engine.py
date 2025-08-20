@@ -20,11 +20,11 @@ _multi_unit_cache: Dict[str, List[Dict[str, str]]] = {}
 
 class OccupantResult(BaseModel):
     """Structured result for occupant identification analysis."""
-    confirmed_occupant: str = Field(description="The confirmed occupant name or 'Need more information'")
     matched_snippet: str = Field(description="Relevant snippets that match the address with sources and credibility")
     multiple_units_snippet: str = Field(description="Matched snippet(s) that matches address with multiple units: Quote the snippets from the selected matched snippet(s) that matches address and contains multiple units, -url, -label credible/non-credible source and -source date / NA, if none")
-    business_summary: str = Field(description="Summary of the core and other business activities of the selected occupant")
     reasoning: str = Field(description="Detailed reasoning for the occupant selection decision")
+    confirmed_occupant: str = Field(description="The confirmed occupant name or 'Need more information'")
+    business_summary: str = Field(description="Summary of the core and other business activities of the selected occupant")
 
 
 class ComplianceResult(BaseModel):
@@ -426,11 +426,11 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
     
     # Define JSON structure outside f-string to avoid template variable conflicts
     occupant_json_structure = """{{
-    "confirmed_occupant": "Business name from snippets or 'Need more information'",
     "matched_snippet": "Quote the relevant snippets that match the address, including URL and source credibility assessment",
     "multiple_units_snippet": "Matched snippet(s) that matches address with multiple units: Quote the snippets from the selected matched snippet(s) that matches address and contains multiple units, -url, -label credible/non-credible source and -source date / NA, if none",
-    "business_summary": "Summarize the core and other business activities of the selected occupant",
-    "reasoning": "Show your responses for each step. Why that entity was chosen, or why no match could be confirmed"
+    "reasoning": "Show your responses for each step. Why that entity was chosen, or why no match could be confirmed",
+    "confirmed_occupant": "Business name from snippets or 'Need more information'",
+    "business_summary": "Summarize the core and other business activities of the selected occupant"
 }}"""
     
     occupant_prompt = f"""Today's date is {today}
@@ -499,7 +499,7 @@ Follow the step-by-step instructions in the system prompt and provide your analy
 
     # Step 3: Compliance assessment if occupant is identified
     if confirmed_occupant == "Need more information":
-        compliance_level = "Need more information"
+        compliance_level = "Not Applicable"
         rationale = "Unable to confirm occupant, compliance assessment not performed."
         confirmed_occupant_google_search_results = "No occupant identified for search"
     else:
