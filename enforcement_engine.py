@@ -383,6 +383,7 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
     verified_occupant_response = ""
     verification_analysis = ""
     confirmed_occupant = ""
+    business_summary = ""
     compliance_level = "Need more information"
     rationale = "Unable to confirm occupant, compliance assessment not performed."
     
@@ -475,7 +476,7 @@ Identify the current occupant of: {address} using the search results below.
 
 ---
 
-Follow the step-by-step instructions in the system prompt and provide your analysis in the following JSON structure:
+Use the information above and follow the step-by-step instructions in the system prompt and provide your analysis in the following JSON structure:
 {occupant_json_structure}
 """
 
@@ -544,13 +545,15 @@ Follow the step-by-step instructions in the system prompt and provide your analy
             confirmed_occupant_google_search_results = f"Occupant search failed: {str(search_error)}"
             log_progress(f"⚠️ Occupant search failed")
 
+        business_summary = occupant_result.business_summary if hasattr(occupant_result, 'business_summary') else "No business summary available"
+
         # Compliance assessment
         log_progress(f"⚖️ Assessing compliance...")
         
         # Define JSON structure outside f-string to avoid template variable conflicts
         compliance_json_structure = """{{
     "compliance_level": "One of: Unauthorised Use, Authorised Use, Likely Authorised Use, Likely Unauthorised Use, Need more information",
-    "rationale": "Detailed rationale for compliance level with specific references to B1 use categories"
+    "rationale": "Show your responses for each step. Detailed rationale for compliance level with specific references to B1 use categories"
 }}"""
         
         compliance_prompt = f"""Assess the occupant's operations based on the following information:
@@ -560,9 +563,9 @@ Selected Occupant: {confirmed_occupant}
 Occupant's Address: {address}
 
 Google Search Result of Occupant's name: {confirmed_occupant_google_search_results}
-Verification Analysis: {verification_analysis}
+Business Summary: {business_summary}
 
-Evaluate whether the occupant's business operations are reasonably aligned with the approved use classification based on standard land use interpretations in Singapore.
+Evaluate whether the occupant's use of the space (e.g. using space as retail display/showroom of motor vehicles is permissible) is reasonably aligned with the approved use based on standard land use interpretations in Singapore.
 
 Primary approved use: {primary_approved_use}
 Secondary approved use: {secondary_approved_use}
