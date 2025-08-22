@@ -92,7 +92,7 @@ def display_main_page():
                     st.session_state.processing_results = result_data
                     st.session_state.last_processed_inputs = current_inputs
                     st.session_state.show_persistent_results = True
-                    st.balloons()
+                    st.toast('Processing completed successfully! Scroll down to view or download the results and Summary.')
                 else:
                     st.error("Processing failed. Please check your input and try again.")
     else:
