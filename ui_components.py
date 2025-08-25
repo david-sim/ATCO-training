@@ -299,57 +299,18 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
 
 
 def create_realtime_progress_handler() -> Tuple[Callable, List[str]]:
-    """
-    Create progress handlers for real-time UI updates with typewriter effect.
-    Uses Streamlit's st.write_stream for smooth typewriter animation without blocking.
-    """
+    """Create progress handlers for real-time UI updates."""
     progress_bar = st.progress(0)
     status_text = st.empty()
-    
-    # Create main container for the progress log
-    progress_log_container = st.container()
-    
-    # Use session state to persist progress messages and display state
+    progress_log = st.empty()
+  
+    # Use session state to persist progress messages
     if 'progress_messages' not in st.session_state:
         st.session_state.progress_messages = []
-    if 'progress_display_state' not in st.session_state:
-        st.session_state.progress_display_state = {
-            'container': None,
-            'current_message_container': None,
-            'previous_messages_container': None
-        }
-        
     progress_messages = st.session_state.progress_messages
-    
-    # Initialize the progress log display
-    with progress_log_container:
-        st.markdown("#### 📋 Real-time Processing Log")
-        
-        # Container for previous messages (displayed instantly)
-        previous_messages_container = st.container()
-        
-        # Container for the current message (with typewriter effect)
-        current_message_container = st.empty()
-        
-        # Store containers in session state
-        st.session_state.progress_display_state.update({
-            'previous_messages_container': previous_messages_container,
-            'current_message_container': current_message_container
-        })
-    
-    def create_typewriter_stream(message: str):
-        """
-        Generator that creates typewriter effect for st.write_stream.
-        Yields progressively longer portions of the message.
-        """
-        formatted_msg = f"🔄 **{message}**"
-        
-        # Yield each character progressively
-        for i in range(len(formatted_msg) + 1):
-            yield formatted_msg[:i]
-    
+       
     def update_progress(message, current_index=None, total=None):
-        """Update progress with real-time UI updates and typewriter effect for newest message."""
+        """Update progress with real-time UI updates."""
         # Use Singapore timezone for timestamps
         sg_tz = pytz.timezone("Asia/Singapore")
         timestamp = datetime.datetime.now(sg_tz).strftime("%H:%M:%S")
@@ -358,58 +319,33 @@ def create_realtime_progress_handler() -> Tuple[Callable, List[str]]:
         # Always log to console
         print(formatted_message)
 
+        # Add to progress messages
+        progress_messages.append(formatted_message)
+        st.session_state.progress_messages = progress_messages
+
         # Update progress bar if index provided
         if current_index is not None and total is not None:
             progress = current_index / total
             progress_bar.progress(progress)
             status_text.info(f"Processing {current_index}/{total}: {message}")
 
-        # Add to progress messages
-        progress_messages.append(formatted_message)
-        st.session_state.progress_messages = progress_messages
-
-        # Update display
-        display_state = st.session_state.progress_display_state
-        previous_container = display_state.get('previous_messages_container')
-        current_container = display_state.get('current_message_container')
+        # Show real-time progress log (newest messages at top)
+        reversed_messages = list(reversed(progress_messages))
+        display_messages = reversed_messages[:50]  # Limit to last 50 messages
         
-        if previous_container and current_container:
-            # Display previous messages (except the most recent one)
-            if len(progress_messages) > 1:
-                with previous_container:
-                    # Clear and re-populate previous messages
-                    previous_container.empty()
-                    
-                    # Show last 10 messages (excluding the newest one)
-                    previous_msgs = list(reversed(progress_messages[:-1]))[-10:]
-                    
-                    for i, old_msg in enumerate(previous_msgs):
-                        if i < 3:  # More recent previous messages
-                            st.success(f"✅ {old_msg}")
-                        elif i < 6:  # Older messages  
-                            st.info(f"ℹ️ {old_msg}")
-                        else:  # Oldest messages
-                            st.text(f"⚪ {old_msg}")
-            
-            # Display newest message with typewriter effect
-            try:
-                current_container.write_stream(create_typewriter_stream(formatted_message))
-            except Exception as e:
-                # Fallback to regular display if write_stream fails
-                current_container.warning(f"🔄 {formatted_message}")
+        progress_log.text_area(
+            "📋 Real-time Processing Log",
+            value="\n".join(display_messages),
+            height=200,
+            disabled=True,
+            key=f"realtime_progress_log_{len(progress_messages)}"
+        )
     
     def clear_realtime_display():
         """Clear the real-time display elements to prevent duplication."""
         progress_bar.empty()
         status_text.empty()
-        progress_log_container.empty()
-        
-        # Reset session state
-        st.session_state.progress_display_state = {
-            'container': None,
-            'current_message_container': None,
-            'previous_messages_container': None
-        }
+        progress_log.empty()
     
     return update_progress, progress_messages, clear_realtime_display
 
