@@ -1038,6 +1038,36 @@ def display_sidebar():
         st.success("🤖 AI-assisted for accurate results")
         
         st.markdown("---")
+        # SERP API searches left display
+        try:
+            from search_service import get_searches_left, get_detailed_account_status
+            searches_left = get_searches_left()
+            if searches_left is not None:
+                # Color coding based on remaining searches
+                if searches_left > 1000:
+                    st.success(f"🔍 **SERP searches left:** {searches_left:,}")
+                elif searches_left > 100:
+                    st.warning(f"🔍 **SERP searches left:** {searches_left:,}")
+                else:
+                    st.error(f"🔍 **SERP searches left:** {searches_left:,}")
+                
+                # Optional: Show detailed account status in expander
+                with st.expander("📊 Detailed SERP Status", expanded=False):
+                    account_status = get_detailed_account_status()
+                    if account_status:
+                        #st.metric("Plan", account_status['plan_name'])
+                        #st.metric("Monthly Limit", f"{account_status['searches_per_month']:,}")
+                        st.metric("This Month Usage", f"{account_status['this_month_usage']:,}")
+                        #st.metric("Last Hour", account_status['last_hour_searches'])
+                        st.metric("Usage %", f"{account_status['usage_percentage']}%")
+                        st.metric("Rate Limit/Hour", account_status['rate_limit_per_hour'])
+                            
+            else:
+                st.caption("🔍 SERP searches left: Unable to retrieve")
+        except Exception as e:
+            st.caption(f"🔍 SERP searches left: Error loading ({str(e)})")
+        
+        st.markdown("---")
         st.markdown("**Smart Compliance Operations Unit Tool**")
         st.markdown("Upload CSV files to process addresses for compliance assessment.")
         

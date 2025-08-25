@@ -4,6 +4,7 @@ Combines functionality from google_search.py and simple_google_search.py.
 """
 import time
 import logging
+import requests
 from typing import Optional, Dict, Any, List
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
@@ -26,6 +27,11 @@ except ImportError:
 _last_api_call_time = 0
 _api_call_count = 0
 _rate_limit_reset_time = 0
+
+# Account info caching globals
+_cached_account_info = None
+_account_info_cache_time = 0
+_account_info_cache_duration = 300  # Cache for 5 minutes
 
 
 def get_rate_limiting_config() -> Dict[str, float]:
@@ -245,6 +251,94 @@ def get_rate_limit_status() -> Dict[str, Any]:
         "calls_remaining": max(0, rate_limit_per_hour - _api_call_count),
         "time_until_reset_minutes": time_until_reset / 60,
         "reset_time": time.ctime(_rate_limit_reset_time) if _rate_limit_reset_time > 0 else "Not set"
+    }
+
+
+def get_serpapi_account_info() -> Optional[Dict[str, Any]]:
+    """
+    Get SERP API account information including total searches left.
+    Uses caching to avoid excessive API calls.
+    
+    Returns:
+        Dictionary containing account information or None if failed
+    """
+    global _cached_account_info, _account_info_cache_time
+    
+    # Check if we have valid cached data
+    current_time = time.time()
+    if (_cached_account_info is not None and 
+        current_time - _account_info_cache_time < _account_info_cache_duration):
+        print("📋 Using cached SERP account information")
+        return _cached_account_info
+    
+    api_key = get_serpapi_key()
+    if not api_key:
+        print("❌ SERPAPI_API_KEY not found - cannot retrieve account info")
+        return None
+    
+    try:
+        # Make GET request to SERP API account endpoint
+        url = f"https://serpapi.com/account?api_key={api_key}"
+        
+        print("🔍 Retrieving SERP API account information...")
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            account_data = response.json()
+            
+            # Cache the result
+            _cached_account_info = account_data
+            _account_info_cache_time = current_time
+            
+            print(f"✅ Successfully retrieved SERP account info - cached for {_account_info_cache_duration}s")
+            return account_data
+        else:
+            print(f"❌ SERP API account request failed with status {response.status_code}: {response.text}")
+            return None
+            
+    except requests.exceptions.Timeout:
+        print("❌ SERP API account request timed out")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"❌ SERP API account request failed: {str(e)}")
+        return None
+    except Exception as e:
+        print(f"❌ Unexpected error getting SERP account info: {str(e)}")
+        return None
+
+
+def get_searches_left() -> Optional[int]:
+    """
+    Get the number of searches remaining in SERP API account.
+    
+    Returns:
+        Number of total searches left or None if failed
+    """
+    account_info = get_serpapi_account_info()
+    if account_info:
+        return account_info.get('total_searches_left')
+    return None
+
+
+def get_detailed_account_status() -> Optional[Dict[str, Any]]:
+    """
+    Get detailed SERP API account status for monitoring dashboard.
+    
+    Returns:
+        Dictionary with formatted account status or None if failed
+    """
+    account_info = get_serpapi_account_info()
+    if not account_info:
+        return None
+    
+    return {
+        'plan_name': account_info.get('plan_name', 'Unknown'),
+        'searches_per_month': account_info.get('searches_per_month', 0),
+        'total_searches_left': account_info.get('total_searches_left', 0),
+        'this_month_usage': account_info.get('this_month_usage', 0),
+        'last_hour_searches': account_info.get('last_hour_searches', 0),
+        'rate_limit_per_hour': account_info.get('account_rate_limit_per_hour', 0),
+        'usage_percentage': round((account_info.get('this_month_usage', 0) / account_info.get('searches_per_month', 1)) * 100, 1)
     }
 
 
