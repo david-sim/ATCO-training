@@ -17,11 +17,14 @@ from csv_processor import process_csv_with_validation, create_csv_for_download, 
 # Global cache for multi-unit snippets across processing sessions
 _multi_unit_cache: Dict[str, List[Dict[str, str]]] = {}
 
+# Global cache for compliance assessments across processing sessions
+_compliance_cache: Dict[str, Dict[str, str]] = {}
+
 
 class OccupantResult(BaseModel):
     """Structured result for occupant identification analysis."""
     matched_snippet: str = Field(description="Relevant snippets that match the address with sources and credibility")
-    multiple_units_snippet: str = Field(description="Matched snippet(s) that matches address with multiple units: Quote the snippets from the selected matched snippet(s) that matches address and contains multiple units, -url, -label credible/non-credible source and -source date / NA, if none")
+    multiple_units_snippet: str = Field(description="Matched snippet(s) which suggests that occupant occupies multiple units (e.g. #01-01/02, #01-03 and 04, etc.) in the address, -url, -label credible/non-credible source and -source date OR NA, if none")
     reasoning: str = Field(description="Detailed reasoning for the occupant selection decision")
     confirmed_occupant: str = Field(description="The confirmed occupant name or 'Need more information'")
     business_summary: str = Field(description="Summary of the core and other business activities of the selected occupant")
@@ -31,6 +34,142 @@ class ComplianceResult(BaseModel):
     """Structured result for compliance assessment analysis."""
     compliance_level: str = Field(description="The compliance level: Unauthorised Use / Authorised Use / Likely Authorised Use / Likely Unauthorised Use / Need more information")
     rationale: str = Field(description="Detailed rationale explaining the compliance level determination")
+
+
+def create_compliance_cache_key(occupant: str, primary_approved_use: str, secondary_approved_use: str, address_type: str) -> str:
+    """
+    Create a unique cache key for compliance assessments.
+    
+    Args:
+        occupant: Confirmed occupant name
+        primary_approved_use: Primary approved use for the address
+        secondary_approved_use: Secondary approved use for the address
+        address_type: Type of address processing
+    
+    Returns:
+        Unique cache key string
+    """
+    # Normalize strings to handle case variations and extra spaces
+    occupant_clean = occupant.strip().lower() if occupant else ""
+    primary_clean = primary_approved_use.strip().lower() if primary_approved_use else ""
+    secondary_clean = secondary_approved_use.strip().lower() if secondary_approved_use else ""
+    address_type_clean = address_type.strip().lower() if address_type else ""
+    
+    # Create composite key
+    cache_key = f"{occupant_clean}|{primary_clean}|{secondary_clean}|{address_type_clean}"
+    return cache_key
+
+
+def store_compliance_assessment(occupant: str, primary_approved_use: str, secondary_approved_use: str, 
+                               address_type: str, compliance_level: str, rationale: str) -> None:
+    """
+    Store compliance assessment for future reference when same occupant is encountered.
+    
+    Args:
+        occupant: Confirmed occupant name
+        primary_approved_use: Primary approved use for the address
+        secondary_approved_use: Secondary approved use for the address
+        address_type: Type of address processing
+        compliance_level: Determined compliance level
+        rationale: Detailed rationale for the compliance assessment
+    """
+    if not occupant or occupant in ["Need more information", "Analysis not available"]:
+        print(f"❌ [COMPLIANCE-CACHE] Not storing assessment for invalid occupant: '{occupant}'")
+        return  # Don't cache assessments for unidentified occupants
+    
+    cache_key = create_compliance_cache_key(occupant, primary_approved_use, secondary_approved_use, address_type)
+    
+    _compliance_cache[cache_key] = {
+        "occupant": occupant,
+        "primary_approved_use": primary_approved_use,
+        "secondary_approved_use": secondary_approved_use,
+        "address_type": address_type,
+        "compliance_level": compliance_level,
+        "rationale": rationale,
+        "cached_at": datetime.datetime.now().isoformat()
+    }
+    
+    print(f"💾 [COMPLIANCE-CACHE] ✅ Stored assessment for '{occupant}'")
+    print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+    print(f"    📊 Level: {compliance_level}")
+    print(f"    🔑 Cache key: {cache_key[:50]}...")
+    print(f"    📈 Cache size: {len(_compliance_cache)} entries")
+    
+    # Keep cache size manageable (max 100 entries)
+    if len(_compliance_cache) > 100:
+        # Remove oldest 20 entries (simple LRU-like behavior)
+        oldest_keys = list(_compliance_cache.keys())[:20]
+        for key in oldest_keys:
+            del _compliance_cache[key]
+        print(f"🧹 [COMPLIANCE-CACHE] Cache trimmed - removed {len(oldest_keys)} oldest entries")
+
+
+def get_cached_compliance_assessment(occupant: str, primary_approved_use: str, secondary_approved_use: str, 
+                                   address_type: str) -> Optional[Dict[str, str]]:
+    """
+    Retrieve cached compliance assessment for the same occupant with same approved uses.
+    
+    Args:
+        occupant: Confirmed occupant name
+        primary_approved_use: Primary approved use for the address
+        secondary_approved_use: Secondary approved use for the address
+        address_type: Type of address processing
+    
+    Returns:
+        Cached compliance assessment dict or None if not found
+    """
+    if not occupant or occupant in ["Need more information", "Analysis not available"]:
+        print(f"❌ [COMPLIANCE-CACHE] Cannot retrieve cache for invalid occupant: '{occupant}'")
+        return None
+    
+    cache_key = create_compliance_cache_key(occupant, primary_approved_use, secondary_approved_use, address_type)
+    
+    if cache_key in _compliance_cache:
+        cached_assessment = _compliance_cache[cache_key]
+        print(f"✅ [COMPLIANCE-CACHE] 🎯 Cache HIT for '{occupant}'")
+        print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+        print(f"    📊 Cached level: {cached_assessment.get('compliance_level', 'Unknown')}")
+        print(f"    📅 Cached at: {cached_assessment.get('cached_at', 'Unknown')}")
+        print(f"    🔑 Cache key: {cache_key[:50]}...")
+        return cached_assessment
+    
+    print(f"❌ [COMPLIANCE-CACHE] 🎯 Cache MISS for '{occupant}'")
+    print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+    print(f"    🔑 Looking for key: {cache_key[:50]}...")
+    print(f"    📊 Current cache size: {len(_compliance_cache)} entries")
+    return None
+
+
+def check_multi_unit_occupant_match(current_address: str, current_occupant: str) -> bool:
+    """
+    Check if the current occupant matches any occupant in the multi-unit cache for the same base address.
+    This helps identify when the same occupant occupies multiple units.
+    
+    Args:
+        current_address: The address currently being processed
+        current_occupant: The occupant identified for current address
+    
+    Returns:
+        True if occupant matches existing multi-unit data, False otherwise
+    """
+    if not current_occupant or current_occupant in ["Need more information", "Analysis not available"]:
+        return False
+    
+    base_address = extract_base_address(current_address)
+    
+    if base_address not in _multi_unit_cache or not _multi_unit_cache[base_address]:
+        return False
+    
+    # Normalize occupant name for comparison
+    current_occupant_clean = current_occupant.strip().lower()
+    
+    for entry in _multi_unit_cache[base_address]:
+        cached_occupant_clean = entry["occupant"].strip().lower()
+        if cached_occupant_clean == current_occupant_clean:
+            print(f"🔗 [MULTI-UNIT-MATCH] Found matching occupant '{current_occupant}' in cache for base address '{base_address}'")
+            return True
+    
+    return False
 
 
 def parse_json_response(response: str) -> Optional[dict]:
@@ -212,7 +351,6 @@ def store_multi_unit_data(address: str, occupant: str, multiple_units_snippet: s
             "occupant": occupant,
             "snippet": multiple_units_snippet,
             "source_address": address,
-            "timestamp": datetime.datetime.now().isoformat()
         }
         
         # Check if similar entry already exists
@@ -240,7 +378,6 @@ def store_multi_unit_data(address: str, occupant: str, multiple_units_snippet: s
             "occupant": occupant,
             "snippet": multiple_units_snippet,
             "source_address": address,
-            "timestamp": datetime.datetime.now().isoformat()
         }
         
         # Check if similar entry already exists
@@ -281,7 +418,6 @@ def get_relevant_multi_unit_data(current_address: str) -> str:
 Previous Record: {entry['source_address']}
 Occupant: {entry['occupant']}
 Multi-Unit Snippet: {entry['snippet']}
-Processed: {entry['timestamp'][:10]}
 ---"""
         relevant_snippets.append(snippet_info)
     
@@ -453,7 +589,7 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
     # Define JSON structure outside f-string to avoid template variable conflicts
     occupant_json_structure = """{{
     "matched_snippet": "Quote the relevant snippets that match the address, including URL and source credibility assessment",
-    "multiple_units_snippet": "Matched snippet(s) that matches address with multiple units: Quote the snippets from the selected matched snippet(s) that matches address and contains multiple units, -url, -label credible/non-credible source and -source date / NA, if none",
+    "multiple_units_snippet": "Matched snippet(s) which suggests that occupant occupies multiple units (e.g. #01-01/02, #01-03 and 04, etc.) in the address, -url, -label credible/non-credible source and -source date OR NA, if none",
     "reasoning": "Show your responses for each step. Why that entity was chosen, or why no match could be confirmed",
     "confirmed_occupant": "Business name from snippets or 'Need more information'",
     "business_summary": "Summarize the core and other business activities of the selected occupant"
@@ -470,9 +606,9 @@ Identify the current occupant of: {address} using the search results below.
 {address_search_results_raw_variant}
 </google_search_results_variant>
 
-<relevant_google_snippets>
+<multi_units_google_snippets>
 {address_multiple_units}
-</relevant_google_snippets>
+</multi_units_google_snippets>
 
 ---
 
@@ -547,16 +683,28 @@ Use the information above and follow the step-by-step instructions in the system
 
         business_summary = occupant_result.business_summary if hasattr(occupant_result, 'business_summary') else "No business summary available"
 
-        # Compliance assessment
-        log_progress(f"⚖️ Assessing compliance...")
+        # Check for cached compliance assessment before performing new analysis
+        log_progress(f"🔍 Checking compliance cache...")
+        cached_assessment = get_cached_compliance_assessment(
+            confirmed_occupant, primary_approved_use, secondary_approved_use, address_type
+        )
         
-        # Define JSON structure outside f-string to avoid template variable conflicts
-        compliance_json_structure = """{{
+        if cached_assessment:
+            # Use cached assessment
+            compliance_level = cached_assessment["compliance_level"]
+            rationale = cached_assessment["rationale"]
+            log_progress(f"✅ Using cached compliance assessment")
+        else:
+            # Perform new compliance assessment
+            log_progress(f"⚖️ Assessing compliance...")
+            
+            # Define JSON structure outside f-string to avoid template variable conflicts
+            compliance_json_structure = """{{
     "compliance_level": "One of: Unauthorised Use, Authorised Use, Likely Authorised Use, Likely Unauthorised Use, Need more information",
     "rationale": "Show your responses for each step. Detailed rationale for compliance level with specific references to B1 use categories"
 }}"""
-        
-        compliance_prompt = f"""Assess the occupant's operations based on the following information:
+            
+            compliance_prompt = f"""Assess the occupant's operations based on the following information:
 
 Selected Occupant: {confirmed_occupant}
 
@@ -576,27 +724,33 @@ Provide your assessment in the following JSON structure:
 {compliance_json_structure}
 """
 
-        # Create ChatPromptTemplate with system rules and human prompt
-        compliance_chat_prompt = ChatPromptTemplate.from_messages([
-            ("system", compliance_rules),
-            ("human", compliance_prompt)
-        ])
+            # Create ChatPromptTemplate with system rules and human prompt
+            compliance_chat_prompt = ChatPromptTemplate.from_messages([
+                ("system", compliance_rules),
+                ("human", compliance_prompt)
+            ])
 
-        # Create structured LLM chain
-        structured_compliance_llm = llm.with_structured_output(ComplianceResult)
-        compliance_chain = compliance_chat_prompt | structured_compliance_llm
+            # Create structured LLM chain
+            structured_compliance_llm = llm.with_structured_output(ComplianceResult)
+            compliance_chain = compliance_chat_prompt | structured_compliance_llm
 
-        try:
-            compliance_result = compliance_chain.invoke({})
-            log_progress(f"✅ Compliance assessment completed")
-            
-            compliance_level = compliance_result.compliance_level
-            rationale = compliance_result.rationale
-            
-        except Exception as compliance_error:
-            log_progress(f"❌ Compliance assessment failed")
-            compliance_level = "Assessment failed"
-            rationale = f"Compliance assessment failed: {str(compliance_error)}"
+            try:
+                compliance_result = compliance_chain.invoke({})
+                log_progress(f"✅ Compliance assessment completed")
+                
+                compliance_level = compliance_result.compliance_level
+                rationale = compliance_result.rationale
+                
+                # Store the assessment in cache for future use
+                store_compliance_assessment(
+                    confirmed_occupant, primary_approved_use, secondary_approved_use, 
+                    address_type, compliance_level, rationale
+                )
+                
+            except Exception as compliance_error:
+                log_progress(f"❌ Compliance assessment failed")
+                compliance_level = "Assessment failed"
+                rationale = f"Compliance assessment failed: {str(compliance_error)}"
     
     # Individual address processing completed - no need for separate log since batch completion will be logged
     

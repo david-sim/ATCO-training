@@ -428,7 +428,7 @@ def initialize_llm() -> Optional[Any]:
                     api_version=api_version,
                     temperature=temperature
                 )
-                st.success(f"✅ Initialized Azure OpenAI with deployment: {model}")
+                #st.success(f"✅ Initialized Azure OpenAI with deployment: {model}")
                 
             else:
                 # Initialize regular OpenAI (default/trial)

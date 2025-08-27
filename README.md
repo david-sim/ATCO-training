@@ -41,18 +41,57 @@ An AI-powered smart compliance operations system that analyzes addresses for com
 
 ## ⚙️ Setup Instructions
 
-### 1. API Configuration
-Configure your OpenAI API key using one of these methods:
+### 1. AI Service Configuration
+
+The application supports both **OpenAI** and **Azure OpenAI** services. Configure your preferred AI provider:
+
+#### OpenAI Configuration (Default)
+Add your OpenAI API key using one of these methods:
 - **Streamlit Secrets**: Add to `secrets.toml`
   ```toml
   OPENAI_API_KEY = "your-api-key-here"
-  SERPAPI_API_KEY = "your-api-key-here"
+  SERPAPI_API_KEY = "your-serpapi-key-here"
   ```
 - **Environment Variable**: 
   ```bash
   export OPENAI_API_KEY="your-api-key-here"
-  export SERPAPI_API_KEY = "your-api-key-here"
+  export SERPAPI_API_KEY="your-serpapi-key-here"
   ```
+
+#### Azure OpenAI Configuration
+To use Azure OpenAI instead:
+
+1. **Add Azure API Key** to `secrets.toml`:
+   ```toml
+   AZURE_API_KEY = "your-azure-api-key-here"
+   SERPAPI_API_KEY = "your-serpapi-key-here"
+   ```
+
+2. **Update Configuration**: Edit `config.json` to switch AI source:
+   ```json
+   {
+     "ai_source": "azure",
+     "azure_llm": {
+       "endpoint": "https://your-resource.openai.azure.com/",
+       "model": "your-deployment-name",
+       "temperature": "0.78",
+       "api_version": "2024-02-15-preview"
+     }
+   }
+   ```
+
+3. **Configuration Parameters**:
+   - `ai_source`: Set to `"azure"` for Azure OpenAI or `"trial"` for regular OpenAI
+   - `endpoint`: Your Azure OpenAI resource endpoint URL
+   - `model`: Your deployment name (not the model name)
+   - `api_version`: Azure API version (recommended: "2024-02-15-preview")
+
+#### Switching Between Services
+Simply change the `ai_source` value in `config.json`:
+- `"trial"` - Uses regular OpenAI (default)
+- `"azure"` - Uses Azure OpenAI
+
+The application will automatically use the correct service and display the current configuration in the sidebar.
 
 ### 2. Installation
 ```bash
