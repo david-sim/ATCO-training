@@ -350,30 +350,111 @@ def create_realtime_progress_handler() -> Tuple[Callable, List[str]]:
     return update_progress, progress_messages, clear_realtime_display
 
 
+def display_ai_configuration():
+    """Display current AI configuration in the sidebar."""
+    from config_manager import get_ai_source, get_llm_model, get_azure_model, config
+    
+    ai_source = get_ai_source()
+    
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🤖 AI Configuration")
+    
+    # Add reload configuration button
+    if st.sidebar.button("🔄 Reload Config", help="Reload configuration from config.json"):
+        config.reload()
+        clear_llm_cache()  # Clear LLM cache to force reinitialization
+        st.sidebar.success("✅ Configuration reloaded!")
+        st.rerun()
+    
+    if ai_source == "azure":
+        model = get_azure_model()
+        st.sidebar.info(f"**Azure OpenAI**\nModel: {model}")
+    else:
+        model = get_llm_model()
+        st.sidebar.info(f"**OpenAI**\nModel: {model}")
+    
+    st.sidebar.caption(f"Source: {ai_source}")
+
+
+def clear_llm_cache():
+    """Clear cached LLM instance to force reinitialization."""
+    if 'llm' in st.session_state:
+        del st.session_state.llm
+
+
 def initialize_llm() -> Optional[Any]:
     """Initialize and cache the language model."""
     if 'llm' not in st.session_state:
         try:
-            from langchain_openai import ChatOpenAI
-            from config_manager import get_llm_model, get_llm_temperature
-            
-            # Validate API key exists (still from secrets for security)
-            api_key = st.secrets.get("OPENAI_API_KEY")
-            if not api_key:
-                st.error("❌ OPENAI_API_KEY not found in secrets")
-                return None
-            
-            # Get model and temperature from config
-            model = get_llm_model()
-            temperature = float(get_llm_temperature())
-            
-            llm = ChatOpenAI(
-                model=model,
-                api_key=api_key,
-                temperature=temperature
+            from config_manager import (
+                get_ai_source, get_llm_model, get_llm_temperature,
+                get_azure_endpoint, get_azure_model, get_azure_temperature, get_azure_api_version
             )
+            
+            ai_source = get_ai_source()
+            
+            if ai_source == "azure":
+                # Initialize Azure OpenAI
+                from langchain_openai import AzureChatOpenAI
+                
+                # Validate Azure API key exists
+                azure_api_key = st.secrets.get("AZURE_API_KEY")
+                if not azure_api_key:
+                    st.error("❌ AZURE_API_KEY not found in secrets")
+                    st.info("💡 Please add your Azure OpenAI API key to Streamlit secrets")
+                    return None
+                
+                # Get Azure OpenAI configuration
+                endpoint = get_azure_endpoint()
+                model = get_azure_model()
+                temperature = float(get_azure_temperature())
+                api_version = get_azure_api_version()
+                
+                if not endpoint:
+                    st.error("❌ Azure endpoint not configured in config.json")
+                    st.info("💡 Please check the 'azure_llm.endpoint' setting in config.json")
+                    return None
+                
+                # Validate endpoint URL format
+                if not endpoint.startswith(('http://', 'https://')):
+                    st.error("❌ Invalid Azure endpoint URL format")
+                    st.info("💡 Endpoint should start with 'https://'")
+                    return None
+                
+                llm = AzureChatOpenAI(
+                    azure_endpoint=endpoint,
+                    azure_deployment=model,  # This should be the deployment name
+                    api_key=azure_api_key,
+                    api_version=api_version,
+                    temperature=temperature
+                )
+                st.success(f"✅ Initialized Azure OpenAI with deployment: {model}")
+                
+            else:
+                # Initialize regular OpenAI (default/trial)
+                from langchain_openai import ChatOpenAI
+                
+                # Validate API key exists (still from secrets for security)
+                api_key = st.secrets.get("OPENAI_API_KEY")
+                if not api_key:
+                    st.error("❌ OPENAI_API_KEY not found in secrets")
+                    st.info("💡 Please add your OpenAI API key to Streamlit secrets")
+                    return None
+                
+                # Get model and temperature from config
+                model = get_llm_model()
+                temperature = float(get_llm_temperature())
+                
+                llm = ChatOpenAI(
+                    model=model,
+                    api_key=api_key,
+                    temperature=temperature
+                )
+                st.success(f"✅ Initialized OpenAI with model: {model}")
+            
             st.session_state.llm = llm
             return llm
+            
         except Exception as e:
             st.error(f"Failed to initialize language model: {str(e)}")
             return None
@@ -1036,6 +1117,9 @@ def display_sidebar():
         st.markdown("### 📊 Quick Info")
         st.info("💡 Upload CSV files with addresses to get started")
         st.success("🤖 AI-assisted for accurate results")
+        
+        # Display AI configuration
+        display_ai_configuration()
         
         st.markdown("---")
         # SERP API searches left display

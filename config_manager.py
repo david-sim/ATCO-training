@@ -87,6 +87,14 @@ class Config:
         """Get all LLM configuration values."""
         return self._config_data.get('llm', {})
     
+    def get_azure_llm_config(self) -> Dict[str, str]:
+        """Get all Azure LLM configuration values."""
+        return self._config_data.get('azure_llm', {})
+    
+    def get_ai_source(self) -> str:
+        """Get the AI source setting (trial or azure)."""
+        return self._config_data.get('ai_source', 'trial')
+    
     def get_rules_config(self) -> Dict[str, str]:
         """Get all rules configuration values."""
         return self._config_data.get('rules', {})
@@ -140,6 +148,26 @@ def get_llm_model() -> str:
 def get_llm_temperature() -> str:
     """Get LLM temperature setting."""
     return config.get('llm.temperature', '0.78')
+
+def get_ai_source() -> str:
+    """Get AI source setting (trial or azure)."""
+    return config.get('ai_source', 'trial')
+
+def get_azure_endpoint() -> str:
+    """Get Azure OpenAI endpoint."""
+    return config.get('azure_llm.endpoint', '')
+
+def get_azure_model() -> str:
+    """Get Azure OpenAI model."""
+    return config.get('azure_llm.model', 'gpt-4')
+
+def get_azure_temperature() -> str:
+    """Get Azure OpenAI temperature setting."""
+    return config.get('azure_llm.temperature', '0.78')
+
+def get_azure_api_version() -> str:
+    """Get Azure OpenAI API version."""
+    return config.get('azure_llm.api_version', '2024-02-15-preview')
 
 def get_industrial_occupant_rules() -> str:
     """Get industrial occupant rules."""
