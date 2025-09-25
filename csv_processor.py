@@ -112,10 +112,10 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
     if len(df.columns) < 1:
         raise CSVValidationError("CSV must contain at least one column (address)")
     
-    # Check maximum columns (should only have exactly 3 columns for shophouse, flexible for industrial)
-    if address_type.lower() == "shophouse" and len(df.columns) > 3:
-        raise CSVValidationError(f"CSV contains {len(df.columns)} columns. For shophouse processing, expected exactly 3 columns: Address, Primary Approved Use, Secondary Approved Use")
-    elif address_type.lower() == "industrial" and len(df.columns) > 3:
+    # Check maximum columns (should only have exactly 2 columns for shophouse, flexible for industrial)
+    if address_type.lower() == "shophouse" and len(df.columns) > 2:
+        raise CSVValidationError(f"CSV contains {len(df.columns)} columns. For shophouse processing, expected exactly 2 columns: Address, Primary Approved Use")
+    elif address_type.lower() == "industrial" and len(df.columns) > 2:
         validation_result['warnings'].append(f"CSV contains {len(df.columns)} columns. For industrial processing, only the first column (Address) is required. Additional columns will be processed if available.")
     
     # Validate first column (addresses) - cannot be entirely empty
@@ -224,32 +224,7 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
                 if len(non_string_primary_uses) > 5:
                     validation_result['warnings'].append(f"... and {len(non_string_primary_uses) - 5} more numeric primary approved use issues")
     
-    # Validate secondary approved use column (column 3) - optional but should be strings if present
-    if len(df.columns) >= 3:
-        secondary_use_col = df.iloc[:, 2]
-        secondary_use_empty = secondary_use_col.isna().sum()
-        
-        # It's OK if secondary use is entirely empty (optional field)
-        if secondary_use_empty == len(df):
-            validation_result['warnings'].append("Secondary approved use column (column 3) is entirely empty (this is optional)")
-        elif secondary_use_empty > 0:
-            validation_result['warnings'].append(f"Found {secondary_use_empty} empty secondary approved use entries")
-        
-        # Validate that secondary approved use entries are strings when present
-        non_string_secondary_uses = []
-        for i, use in enumerate(secondary_use_col.dropna()):
-            if pd.isna(use):
-                continue
-            use_str = str(use).strip()
-            if not use_str:  # Empty string after stripping
-                continue
-            if use_str.replace('.', '').replace('-', '').isdigit():  # Looks like a number
-                non_string_secondary_uses.append(f"Row {i+2}: '{use_str}' - Secondary approved use appears to be numeric")
-        
-        if non_string_secondary_uses:
-            validation_result['warnings'].extend(non_string_secondary_uses[:5])
-            if len(non_string_secondary_uses) > 5:
-                validation_result['warnings'].append(f"... and {len(non_string_secondary_uses) - 5} more numeric secondary approved use issues")
+    # No longer validating secondary approved use column as it has been removed
     
     return validation_result
 
@@ -349,26 +324,16 @@ def extract_csv_data(df: pd.DataFrame, address_type: str) -> Dict[str, List[str]
     else:
         primary_approved_use = [""] * len(addresses)
     
-    # Extract secondary approved use  
-    if len(df.columns) >= 3:
-        secondary_approved_use = df.iloc[:, 2].fillna("").astype(str).str.strip().tolist()
-    else:
-        secondary_approved_use = [""] * len(addresses)
-    
     # Ensure all lists have the same length as addresses
     primary_approved_use = primary_approved_use[:len(addresses)]
-    secondary_approved_use = secondary_approved_use[:len(addresses)]
     
     # Pad with empty strings if needed
     while len(primary_approved_use) < len(addresses):
         primary_approved_use.append("")
-    while len(secondary_approved_use) < len(addresses):
-        secondary_approved_use.append("")
     
     return {
         "addresses": addresses,
-        "primary_approved_use": primary_approved_use,
-        "secondary_approved_use": secondary_approved_use
+        "primary_approved_use": primary_approved_use
     }
 
 
@@ -444,7 +409,6 @@ def create_csv_for_download(results_data: List[List[str]]) -> io.BytesIO:
         'confirmed_occupant', 
         'verification_analysis',
         'primary_approved_use',
-        'secondary_approved_use',
         'compliance_level',
         'rationale',
         'google_address_search_results',

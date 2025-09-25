@@ -119,7 +119,6 @@ The application will be available at `http://localhost:8501`
 ```
 Column 1: Address (Required) - Complete address with postal code
 Column 2: Primary Approved Use (Optional) - e.g., "Shophouse", "Industrial"
-Column 3: Secondary Approved Use (Optional) - e.g., "Retail", "Manufacturing"
 ```
 
 ### Single Record Entry
@@ -127,7 +126,6 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Retail", "Manufacturing"
 2. Fill in the form fields:
    - **Address** (Required): Complete address including unit and postal code
    - **Primary Approved Use** (Optional): Primary use designation
-   - **Secondary Approved Use** (Optional): Secondary use designation
 3. Click "Validate Entry" to confirm input
 4. Select address type (shophouse/industrial)
 5. Click "🚀 Process Single Record"

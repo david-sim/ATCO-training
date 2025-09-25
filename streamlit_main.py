@@ -5,6 +5,10 @@ Clean, focused on UI orchestration using modular components.
 import streamlit as st
 import warnings
 import traceback
+
+# Clear Streamlit cache on startup to ensure fresh data loading
+st.cache_data.clear()
+
 from ui_components import (
     setup_page_config, 
     display_sidebar, 

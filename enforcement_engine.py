@@ -36,14 +36,13 @@ class ComplianceResult(BaseModel):
     rationale: str = Field(description="Detailed rationale explaining the compliance level determination")
 
 
-def create_compliance_cache_key(occupant: str, primary_approved_use: str, secondary_approved_use: str, address_type: str) -> str:
+def create_compliance_cache_key(occupant: str, primary_approved_use: str, address_type: str) -> str:
     """
     Create a unique cache key for compliance assessments.
     
     Args:
         occupant: Confirmed occupant name
         primary_approved_use: Primary approved use for the address
-        secondary_approved_use: Secondary approved use for the address
         address_type: Type of address processing
     
     Returns:
@@ -52,23 +51,20 @@ def create_compliance_cache_key(occupant: str, primary_approved_use: str, second
     # Normalize strings to handle case variations and extra spaces
     occupant_clean = occupant.strip().lower() if occupant else ""
     primary_clean = primary_approved_use.strip().lower() if primary_approved_use else ""
-    secondary_clean = secondary_approved_use.strip().lower() if secondary_approved_use else ""
     address_type_clean = address_type.strip().lower() if address_type else ""
     
     # Create composite key
-    cache_key = f"{occupant_clean}|{primary_clean}|{secondary_clean}|{address_type_clean}"
+    cache_key = f"{occupant_clean}|{primary_clean}|{address_type_clean}"
     return cache_key
 
 
-def store_compliance_assessment(occupant: str, primary_approved_use: str, secondary_approved_use: str, 
-                               address_type: str, compliance_level: str, rationale: str) -> None:
+def store_compliance_assessment(occupant: str, primary_approved_use: str, address_type: str, compliance_level: str, rationale: str) -> None:
     """
     Store compliance assessment for future reference when same occupant is encountered.
     
     Args:
         occupant: Confirmed occupant name
         primary_approved_use: Primary approved use for the address
-        secondary_approved_use: Secondary approved use for the address
         address_type: Type of address processing
         compliance_level: Determined compliance level
         rationale: Detailed rationale for the compliance assessment
@@ -77,12 +73,11 @@ def store_compliance_assessment(occupant: str, primary_approved_use: str, second
         print(f"❌ [COMPLIANCE-CACHE] Not storing assessment for invalid occupant: '{occupant}'")
         return  # Don't cache assessments for unidentified occupants
     
-    cache_key = create_compliance_cache_key(occupant, primary_approved_use, secondary_approved_use, address_type)
+    cache_key = create_compliance_cache_key(occupant, primary_approved_use, address_type)
     
     _compliance_cache[cache_key] = {
         "occupant": occupant,
         "primary_approved_use": primary_approved_use,
-        "secondary_approved_use": secondary_approved_use,
         "address_type": address_type,
         "compliance_level": compliance_level,
         "rationale": rationale,
@@ -90,7 +85,7 @@ def store_compliance_assessment(occupant: str, primary_approved_use: str, second
     }
     
     print(f"💾 [COMPLIANCE-CACHE] ✅ Stored assessment for '{occupant}'")
-    print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+    print(f"    🏢 Uses: {primary_approved_use}")
     print(f"    📊 Level: {compliance_level}")
     print(f"    🔑 Cache key: {cache_key[:50]}...")
     print(f"    📈 Cache size: {len(_compliance_cache)} entries")
@@ -104,15 +99,13 @@ def store_compliance_assessment(occupant: str, primary_approved_use: str, second
         print(f"🧹 [COMPLIANCE-CACHE] Cache trimmed - removed {len(oldest_keys)} oldest entries")
 
 
-def get_cached_compliance_assessment(occupant: str, primary_approved_use: str, secondary_approved_use: str, 
-                                   address_type: str) -> Optional[Dict[str, str]]:
+def get_cached_compliance_assessment(occupant: str, primary_approved_use: str, address_type: str) -> Optional[Dict[str, str]]:
     """
     Retrieve cached compliance assessment for the same occupant with same approved uses.
     
     Args:
         occupant: Confirmed occupant name
         primary_approved_use: Primary approved use for the address
-        secondary_approved_use: Secondary approved use for the address
         address_type: Type of address processing
     
     Returns:
@@ -122,19 +115,19 @@ def get_cached_compliance_assessment(occupant: str, primary_approved_use: str, s
         print(f"❌ [COMPLIANCE-CACHE] Cannot retrieve cache for invalid occupant: '{occupant}'")
         return None
     
-    cache_key = create_compliance_cache_key(occupant, primary_approved_use, secondary_approved_use, address_type)
+    cache_key = create_compliance_cache_key(occupant, primary_approved_use, address_type)
     
     if cache_key in _compliance_cache:
         cached_assessment = _compliance_cache[cache_key]
         print(f"✅ [COMPLIANCE-CACHE] 🎯 Cache HIT for '{occupant}'")
-        print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+        print(f"    🏢 Uses: {primary_approved_use}")
         print(f"    📊 Cached level: {cached_assessment.get('compliance_level', 'Unknown')}")
         print(f"    📅 Cached at: {cached_assessment.get('cached_at', 'Unknown')}")
         print(f"    🔑 Cache key: {cache_key[:50]}...")
         return cached_assessment
     
     print(f"❌ [COMPLIANCE-CACHE] 🎯 Cache MISS for '{occupant}'")
-    print(f"    🏢 Uses: {primary_approved_use} / {secondary_approved_use}")
+    print(f"    🏢 Uses: {primary_approved_use}")
     print(f"    🔑 Looking for key: {cache_key[:50]}...")
     print(f"    📊 Current cache size: {len(_compliance_cache)} entries")
     return None
@@ -240,31 +233,32 @@ def generate_variant(address):
     Returns:
         Variant address string or None if no conversion is possible
     """
-    unit_pattern = re.match(r"^(\d+)\s+(.*)\s+#(0[1-5])-\d{2}\s+(Singapore\s+\d{6})$", address)
+    # Accept either 'Singapore 123456', just '123456', 'Singapore', or nothing at the end
+    unit_pattern = re.match(r"^(\d+)\s+(.*)\s+#(0[1-5])-\d{2}(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address)
     if unit_pattern:
         block = unit_pattern.group(1)
         street = unit_pattern.group(2).strip()
         floor = unit_pattern.group(3)
-        postal = unit_pattern.group(4)
+        postal = unit_pattern.group(4) if unit_pattern.group(4) else ""
 
         floor_to_suffix = {"01" : "", "02": "A", "03": "B", "04": "C", "05": "D"}
         suffix = floor_to_suffix.get(floor)
-        if suffix:
-            return f"{block}{suffix} {street} {postal}"
+        if suffix is not None:
+            return f"{block}{suffix} {street} {postal}".strip()
         else:
             return None
 
-    suffix_pattern = re.match(r"^(\d+)([A-D])\s+(.*)\s+(Singapore\s+\d{6})$", address)
+    suffix_pattern = re.match(r"^(\d+)([A-D])\s+(.*?)(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address)
     if suffix_pattern:
         block = suffix_pattern.group(1)
         suffix = suffix_pattern.group(2)
         street = suffix_pattern.group(3).strip()
-        postal = suffix_pattern.group(4)
+        postal = suffix_pattern.group(4) if suffix_pattern.group(4) else ""
 
         suffix_to_floor = {"A": "02", "B": "03", "C": "04", "D": "05"}
         floor = suffix_to_floor.get(suffix)
-        if floor:
-            return f"{block} {street} #{floor}-01 {postal}"
+        if floor is not None:
+            return f"{block} {street} #{floor}-01 {postal}".strip()
         else:
             return None
 
@@ -484,7 +478,7 @@ def process_csv(command: str, csv_file) -> Dict[str, List[str]]:
         raise ValueError(f"CSV validation failed: {str(e)}")
 
 
-def process_single_address(address: str, llm: Any, primary_approved_use: str = "", secondary_approved_use: str = "", address_type: str = "industrial", progress_callback: Optional[Callable[[str], None]] = None) -> Dict[str, str]:
+def process_single_address(address: str, llm: Any, primary_approved_use: str = "", address_type: str = "", progress_callback: Optional[Callable[[str], None]] = None) -> Dict[str, str]:
     """
     Process a single address through the complete enforcement workflow.
     
@@ -492,7 +486,6 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
         address: Address to process
         llm: Language model instance
         primary_approved_use: Primary approved use for the address
-        secondary_approved_use: Secondary approved use for the address
         address_type: Type of address processing ("shophouse" or "industrial")
         progress_callback: Optional callback function for progress updates
     
@@ -543,16 +536,20 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
         address_search_results_raw = google_search_entity(address_search_query)
         
         # Variant address search - different logic for shophouse vs industrial
-        if address_type.lower() == "shophouse":
+        address_type_clean = address_type.strip().lower() if address_type else ""
+        if address_type_clean == "shophouse":
             # For shophouse, try to generate an address format variant
             variant_address = generate_variant(clean_address)
+            print(f"🔍 [ADDRESS-SEARCH] Generated variant address: '{variant_address}'")
             if variant_address:
                 address_search_query_variant = variant_address
                 log_progress(f"🔄 Generated shophouse variant: '{variant_address}'")
+                print(f"🔄 Using shophouse variant for search: '{variant_address}'")
             else:
                 # Fallback to standard variant if no format conversion possible
                 address_search_query_variant = f"{clean_address}"
                 log_progress(f"🔄 Using fallback variant for shophouse: 'address {clean_address}'")
+                print(f"🔄 Using fallback shophouse variant for search: 'address {clean_address}'")
         else:
             # For industrial, use address without postal code
             clean_address_no_postal = remove_postal_code(clean_address)
@@ -686,7 +683,7 @@ Use the information above and follow the step-by-step instructions in the system
         # Check for cached compliance assessment before performing new analysis
         log_progress(f"🔍 Checking compliance cache...")
         cached_assessment = get_cached_compliance_assessment(
-            confirmed_occupant, primary_approved_use, secondary_approved_use, address_type
+            confirmed_occupant, primary_approved_use, address_type
         )
         
         if cached_assessment:
@@ -716,7 +713,6 @@ Business Summary: {business_summary}
 Evaluate whether the occupant's use of the space (e.g. using space as retail display/showroom of motor vehicles is permissible) is reasonably aligned with the approved use based on standard land use interpretations in Singapore.
 
 Primary approved use: {primary_approved_use}
-Secondary approved use: {secondary_approved_use}
 
 ---
 
@@ -743,8 +739,7 @@ Provide your assessment in the following JSON structure:
                 
                 # Store the assessment in cache for future use
                 store_compliance_assessment(
-                    confirmed_occupant, primary_approved_use, secondary_approved_use, 
-                    address_type, compliance_level, rationale
+                    confirmed_occupant, primary_approved_use, address_type, compliance_level, rationale
                 )
                 
             except Exception as compliance_error:
@@ -759,7 +754,6 @@ Provide your assessment in the following JSON structure:
         'confirmed_occupant': confirmed_occupant,
         'verification_analysis': verification_analysis,
         'primary_approved_use': primary_approved_use,
-        'secondary_approved_use': secondary_approved_use,
         'compliance_level': compliance_level,
         'rationale': rationale,
         'google_address_search_results': address_search_results_raw if address_search_results_raw else "N/A",
@@ -768,7 +762,7 @@ Provide your assessment in the following JSON structure:
     }
 
 
-def process_addresses_batch(addresses, llm, primary_approved_use_list=None, secondary_approved_use_list=None, address_type="industrial", progress_callback=None):
+def process_addresses_batch(addresses, llm, primary_approved_use_list=None, address_type="industrial", progress_callback=None):
     """
     Process multiple addresses in batch.
     
@@ -776,7 +770,6 @@ def process_addresses_batch(addresses, llm, primary_approved_use_list=None, seco
         addresses: List of addresses to process
         llm: Language model instance
         primary_approved_use_list: List of primary approved uses (same length as addresses)
-        secondary_approved_use_list: List of secondary approved uses (same length as addresses)
         address_type: Type of address processing ("shophouse" or "industrial")
         progress_callback: Optional callback function for progress updates
     
@@ -796,8 +789,6 @@ def process_addresses_batch(addresses, llm, primary_approved_use_list=None, seco
         # Handle default values for approved use lists
         if primary_approved_use_list is None:
             primary_approved_use_list = [""] * len(addresses)
-        if secondary_approved_use_list is None:
-            secondary_approved_use_list = [""] * len(addresses)
         
         def batch_progress_callback(message):
             if progress_callback:
@@ -805,17 +796,14 @@ def process_addresses_batch(addresses, llm, primary_approved_use_list=None, seco
         
         for i, address in enumerate(addresses):
             try:
-                # Get the corresponding approved uses for this address
+                # Get the corresponding approved use for this address
                 primary_use = primary_approved_use_list[i] if i < len(primary_approved_use_list) else ""
-                secondary_use = secondary_approved_use_list[i] if i < len(secondary_approved_use_list) else ""
-                
-                result = process_single_address(address, llm, primary_use, secondary_use, address_type, batch_progress_callback)
+                result = process_single_address(address, llm, primary_use, address_type, batch_progress_callback)
                 results.append([
                     result['address'],
                     result['confirmed_occupant'],
                     result['verification_analysis'],
                     result['primary_approved_use'],
-                    result['secondary_approved_use'],
                     result['compliance_level'],
                     result['rationale'],
                     result['google_address_search_results'],
@@ -829,14 +817,12 @@ def process_addresses_batch(addresses, llm, primary_approved_use_list=None, seco
                 
                 # Add error result to maintain structure
                 primary_use = primary_approved_use_list[i] if i < len(primary_approved_use_list) else ""
-                secondary_use = secondary_approved_use_list[i] if i < len(secondary_approved_use_list) else ""
                 
                 results.append([
                     address,
                     "Error",
                     str(e),
                     primary_use,
-                    secondary_use,
                     "Unknown",
                     f"Processing failed: {str(e)}",
                     "N/A",
@@ -867,7 +853,6 @@ def process_addresses_batch(addresses, llm, primary_approved_use_list=None, seco
             "Critical processing failure",
             str(e),
             "",  # primary_approved_use
-            "",  # secondary_approved_use
             "Unknown",
             f"Batch processing failed: {str(e)}",
             "N/A",

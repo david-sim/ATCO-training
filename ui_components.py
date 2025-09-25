@@ -24,7 +24,7 @@ def load_sample_file(address_type: str) -> Optional[io.StringIO]:
     """
     try:
         # Get the path to the sample file (relative to current working directory)
-        sample_filename = f"{address_type}_sample_10_records.csv"
+        sample_filename = f"{address_type}_sample_2_records.csv"
         sample_path = os.path.join("data", sample_filename)
         
         # Check if file exists
@@ -117,14 +117,12 @@ def display_file_upload_section() -> Tuple[Optional[Any], str, Optional[dict]]:
             if address_type == "shophouse":
                 st.code("""
 Column 1: Address (Required) - e.g., "123 Smith Street #02-01 Singapore 123456"
-Column 2: Primary Approved Use (Optional) - e.g., "Shophouse", "Commercial"  
-Column 3: Secondary Approved Use (Optional) - e.g., "Retail", "Food & Beverage"
+Column 2: Primary Approved Use (Required) - e.g., "Shophouse", "Commercial"
                 """)
             else:  # industrial
                 st.code("""
 Column 1: Address (Required) - e.g., "1 Industrial Park Road Singapore 123456"
 Column 2: Primary Approved Use (Optional) - e.g., "Industrial", "Warehouse"
-Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
                 """)
         
         # Create two columns for file upload and sample data options
@@ -144,7 +142,7 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
             # Sample data button
             if st.button(
                 f"📋 Load {address_type.title()} Sample",
-                help=f"Load sample {address_type} addresses for testing (10 sample addresses)",
+                help=f"Load sample {address_type} addresses for testing (2 sample addresses)",
                 key=f"load_sample_{address_type}",
                 use_container_width=True
             ):
@@ -157,7 +155,7 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
                     st.rerun()
             
             # Show sample file info
-            st.caption(f"💡 {address_type}_sample_10_records.csv")
+            st.caption(f"💡 {address_type}_sample_2_records.csv")
         
         # Handle sample file loading
         sample_file = None
@@ -166,7 +164,7 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
             uploaded_file = sample_file  # Use sample file as uploaded file
             
             # Show sample data info with preview
-            st.success(f"📋 Using {address_type} sample data with 10 sample addresses")
+            st.success(f"📋 Using {address_type} sample data with 2 sample addresses")
             
             # Preview the sample data
             with st.expander("👀 Preview Sample Data", expanded=False):
@@ -244,12 +242,6 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
                     key="manual_primary_use"
                 )
             
-            secondary_approved_use = st.text_input(
-                "Secondary Approved Use", 
-                placeholder=secondary_placeholder,
-                help="Enter the secondary approved use (optional)",
-                key="manual_secondary_use"
-            )
             
             submitted = st.form_submit_button(
                 "Validate Entry",
@@ -270,8 +262,7 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
                     # All validations passed
                     single_record_data = {
                         "address": address.strip(),
-                        "primary_approved_use": primary_approved_use.strip() if primary_approved_use.strip() else None,
-                        "secondary_approved_use": secondary_approved_use.strip() if secondary_approved_use.strip() else None
+                        "primary_approved_use": primary_approved_use.strip() if primary_approved_use.strip() else None
                     }
                     # Store validated data in session state
                     st.session_state.validated_single_record = single_record_data
@@ -279,8 +270,6 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing", "Storage"
                     st.info(f"Address: {address}")
                     if primary_approved_use.strip():
                         st.info(f"Primary Use: {primary_approved_use}")
-                    if secondary_approved_use.strip():
-                        st.info(f"Secondary Use: {secondary_approved_use}")
         
         # Use session state data if available
         if st.session_state.validated_single_record is not None:
@@ -483,7 +472,6 @@ def process_file_with_ui(uploaded_file: Any, address_type: str) -> Tuple[bool, O
         csv_data = process_csv(address_type, uploaded_file)
         addresses = csv_data.get("addresses", [])
         primary_approved_use_list = csv_data.get("primary_approved_use", [])
-        secondary_approved_use_list = csv_data.get("secondary_approved_use", [])
         
         if not addresses:
             st.error("No addresses found in the uploaded file.")
@@ -505,14 +493,12 @@ def process_file_with_ui(uploaded_file: Any, address_type: str) -> Tuple[bool, O
             if address_type.lower() == "shophouse":
                 st.code("""
 Column 1: Address (Required) - e.g., "123 Smith Street #02-01 Singapore 123456"  
-Column 2: Primary Approved Use (Optional) - e.g., "Shophouse"
-Column 3: Secondary Approved Use (Optional) - e.g., "Retail"
+Column 2: Primary Approved Use (Required) - e.g., "Shophouse"
 """)
             elif address_type.lower() == "industrial":  
                 st.code("""
 Column 1: Address (Required) - e.g., "1 Industrial Park Road Singapore 123456"
-Column 2: Primary Approved Use (Optional) - e.g., "Industrial"  
-Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing"
+Column 2: Primary Approved Use (Optional) - e.g., "Industrial"
 """)
         else:
             st.error(error_msg)
@@ -543,7 +529,7 @@ Column 3: Secondary Approved Use (Optional) - e.g., "Manufacturing"
     
     # Use a more lightweight progress indication approach
     with st.spinner(f"Processing {len(addresses)} {address_type} addresses..."):
-        result = process_addresses_batch(addresses, llm, primary_approved_use_list, secondary_approved_use_list, address_type, progress_callback)
+        result = process_addresses_batch(addresses, llm, primary_approved_use_list, address_type, progress_callback)
     
     print(f"🔍 UI Debug: Got result of type: {type(result)}")
 
@@ -589,7 +575,7 @@ def process_single_record_with_ui(single_record_data: dict, address_type: str) -
     Process a single manually entered record with real-time UI updates.
     
     Args:
-        single_record_data: Dictionary containing address, primary_approved_use, secondary_approved_use
+        single_record_data: Dictionary containing address, primary_approved_use
         address_type: Selected address type
     
     Returns:
@@ -603,7 +589,6 @@ def process_single_record_with_ui(single_record_data: dict, address_type: str) -
     # Prepare data for processing
     addresses = [single_record_data["address"]]
     primary_approved_use_list = [single_record_data.get("primary_approved_use")] if single_record_data.get("primary_approved_use") else [None]
-    secondary_approved_use_list = [single_record_data.get("secondary_approved_use")] if single_record_data.get("secondary_approved_use") else [None]
     
     st.success(f"✅ Processing single {address_type} address")
     
@@ -620,7 +605,7 @@ def process_single_record_with_ui(single_record_data: dict, address_type: str) -
     print(f"🔍 UI Debug: About to call process_addresses_batch with 1 address")
     
     with st.spinner(f"Processing 1 {address_type} address..."):
-        result = process_addresses_batch(addresses, llm, primary_approved_use_list, secondary_approved_use_list, address_type, progress_callback)
+        result = process_addresses_batch(addresses, llm, primary_approved_use_list, address_type, progress_callback)
     
     print(f"🔍 UI Debug: Got result of type: {type(result)}")
             
@@ -702,7 +687,7 @@ def generate_text_summary_report(results: List[List[str]], address_type: str) ->
     if results:
         columns = [
             'Address', 'Confirmed Occupant', 'Verification Analysis', 'Primary Approved Use',
-            'Secondary Approved Use', 'Compliance Level', 'Rationale', 'Google Address Search',
+            'Compliance Level', 'Rationale', 'Google Address Search',
             'Google Address Search Variant', 'Occupant Google Search'
         ]
         df = pd.DataFrame(results, columns=columns)
@@ -779,42 +764,31 @@ def display_single_record_details(record_data: List[str], address_type: str):
     st.markdown("### 🏠 Record Details")
     
     # Parse the record data based on the expected format
-    # Expected format: [address, confirmed_occupant, verification_analysis, 
-    #                  primary_approved_use, secondary_approved_use, compliance_level, 
-    #                  rationale, google_address_search_results, 
-    #                  google_address_search_results_variant, confirmed_occupant_google_search_results]
-    
-    if len(record_data) >= 10:
+    # Expected format: [address, confirmed_occupant, verification_analysis, primary_approved_use, compliance_level, rationale, google_address_search_results, google_address_search_results_variant, confirmed_occupant_google_search_results]
+
+    if len(record_data) >= 9:
         address = record_data[0]
         confirmed_occupant = record_data[1]
         verification_analysis = record_data[2]
         primary_approved_use = record_data[3]
-        secondary_approved_use = record_data[4]
-        compliance_level = record_data[5]
-        rationale = record_data[6]
-        google_address_search = record_data[7]
-        google_address_variant = record_data[8]
-        occupant_google_search = record_data[9]
-        
-        # Single column layout with address information first, then occupant information
+        compliance_level = record_data[4]
+        rationale = record_data[5]
+        google_address_search = record_data[6]
+        google_address_variant = record_data[7]
+        occupant_google_search = record_data[8]
+
         st.markdown("#### 📍 Address Information")
         st.info(f"**Address:** {address}")
-        
         if primary_approved_use and primary_approved_use.strip():
             st.info(f"**Primary Approved Use:** {primary_approved_use}")
-        
-        if secondary_approved_use and secondary_approved_use.strip():
-            st.info(f"**Secondary Approved Use:** {secondary_approved_use}")
-        
+
         st.markdown("#### 🔍 Occupant Information")
         st.info(f"**Identified Occupant:** {confirmed_occupant}")
-        
-        # Verification Analysis
+
         if verification_analysis and verification_analysis.strip() and verification_analysis.lower() != 'n/a':
             with st.expander("🔬 Verification Analysis", expanded=True):
                 st.write(verification_analysis)
-        
-        # Compliance Assessment section (full width, before rationale)
+
         st.markdown("#### ⚖️ Compliance Assessment")
         if compliance_level.lower() in ['compliant', 'low risk']:
             st.success(f"**Status:** {compliance_level}")
@@ -824,8 +798,7 @@ def display_single_record_details(record_data: List[str], address_type: str):
             st.error(f"**Status:** {compliance_level}")
         else:
             st.info(f"**Status:** {compliance_level}")
-        
-        # Rationale section (full width)
+
         if rationale and rationale.strip() and rationale.lower() != 'n/a':
             st.markdown("#### 📝 Analysis Rationale")
             with st.expander("View Detailed Rationale", expanded=True):
@@ -917,12 +890,12 @@ def display_results_summary(results: List[List[str]], address_type: str):
     # Convert results to DataFrame for easier analysis
     # Based on enforcement_engine.py, results structure is:
     # [address, confirmed_occupant, verification_analysis, primary_approved_use, 
-    #  secondary_approved_use, compliance_level, rationale, google_address_search_results,
+    #  compliance_level, rationale, google_address_search_results,
     #  google_address_search_results_variant, confirmed_occupant_google_search_results]
     
     columns = [
         'Address', 'Confirmed Occupant', 'Verification Analysis', 'Primary Approved Use',
-        'Secondary Approved Use', 'Compliance Level', 'Rationale', 'Google Address Search',
+        'Compliance Level', 'Rationale', 'Google Address Search',
         'Google Address Search Variant', 'Occupant Google Search'
     ]
     
