@@ -17,7 +17,7 @@ def load_sample_file(address_type: str) -> Optional[io.StringIO]:
     Load sample CSV file based on address type.
     
     Args:
-        address_type: Either "shophouse" or "industrial"
+        address_type: Either "shophouse", "industrial", or "stratamix"
     
     Returns:
         StringIO object containing sample CSV data, or None if file not found
@@ -61,7 +61,7 @@ def display_file_upload_section() -> Tuple[Optional[Any], str, Optional[dict]]:
     # Address type selector
     address_type = st.selectbox(
         "Choose the type of address you're processing",
-        options=["", "shophouse", "industrial"],
+        options=["", "shophouse", "industrial", "stratamix"],
         help="Select address type first - this may customize the form fields below",
         key="address_type_selector"
     )
@@ -118,6 +118,11 @@ def display_file_upload_section() -> Tuple[Optional[Any], str, Optional[dict]]:
                 st.code("""
 Column 1: Address (Required) - e.g., "123 Smith Street #02-01 Singapore 123456"
 Column 2: Primary Approved Use (Required) - e.g., "Shophouse", "Commercial"
+                """)
+            elif address_type == "stratamix":
+                st.code("""
+Column 1: Address (Required) - e.g., "6 Woodlands Square #03-01 737737"
+Column 2: Approved Use (Required) - e.g., "Office", "Retail Shop"
                 """)
             else:  # industrial
                 st.code("""
@@ -213,6 +218,11 @@ Column 2: Primary Approved Use (Optional) - e.g., "Industrial", "Warehouse"
                 address_help = "Enter the complete shophouse address including unit number and postal code"
                 primary_placeholder = "e.g., Office, Restaurant"
                 secondary_placeholder = "e.g., Eating House, Foodshop"
+            elif address_type == "stratamix":
+                address_placeholder = "e.g., 6 Woodlands Square #03-01 737737"
+                address_help = "Enter the complete commercial area address including unit number and postal code"
+                primary_placeholder = "e.g., Office, Retail Shop"
+                secondary_placeholder = "e.g., Clinic, Fitness Centre"
             else:  # industrial
                 address_placeholder = "e.g., 1 Yishun Industrial Street 1 #01-05 768160"
                 address_help = "Enter the complete industrial address including unit number and postal code"  
@@ -226,12 +236,19 @@ Column 2: Primary Approved Use (Optional) - e.g., "Industrial", "Warehouse"
                 key="manual_address"
             )
             
-            # Primary Approved Use - mandatory for shophouse, optional for industrial
+            # Primary Approved Use - mandatory for shophouse and stratamix, optional for industrial
             if address_type == "shophouse":
                 primary_approved_use = st.text_input(
                     "Primary Approved Use *",
                     placeholder=primary_placeholder,
                     help="Enter the primary approved use (required for shophouse)",
+                    key="manual_primary_use"
+                )
+            elif address_type == "stratamix":
+                primary_approved_use = st.text_input(
+                    "Approved Use *",
+                    placeholder=primary_placeholder,
+                    help="Enter the approved use (required for stratamix)",
                     key="manual_primary_use"
                 )
             else:  # industrial
@@ -257,6 +274,10 @@ Column 2: Primary Approved Use (Optional) - e.g., "Industrial", "Warehouse"
                 # Validate primary approved use for shophouse
                 elif address_type == "shophouse" and not primary_approved_use.strip():
                     st.error("❌ Primary Approved Use is required for shophouse addresses!")
+                    st.session_state.validated_single_record = None
+                # Validate primary approved use for stratamix
+                elif address_type == "stratamix" and not primary_approved_use.strip():
+                    st.error("❌ Approved Use is required for stratamix addresses!")
                     st.session_state.validated_single_record = None
                 else:
                     # All validations passed
@@ -494,6 +515,11 @@ def process_file_with_ui(uploaded_file: Any, address_type: str) -> Tuple[bool, O
                 st.code("""
 Column 1: Address (Required) - e.g., "123 Smith Street #02-01 Singapore 123456"  
 Column 2: Primary Approved Use (Required) - e.g., "Shophouse"
+""")
+            elif address_type.lower() == "stratamix":
+                st.code("""
+Column 1: Address (Required) - e.g., "6 Woodlands Square #03-01 737737"
+Column 2: Approved Use (Required) - e.g., "Office"
 """)
             elif address_type.lower() == "industrial":  
                 st.code("""

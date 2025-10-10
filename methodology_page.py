@@ -41,7 +41,7 @@ def display_methodology_page():
         
         6. **AI Analysis Phase 3 - Compliance Check**:
            - Compare business activities with approved use classifications
-           - Apply compliance rules specific to address type (shophouse/industrial)
+           - Apply compliance rules specific to address type (shophouse/industrial/stratamix)
            - Generate compliance determination with detailed rationale
         
         7. **Results Generation**: 

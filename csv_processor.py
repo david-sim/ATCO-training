@@ -88,7 +88,7 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
     
     Args:
         df: pandas DataFrame to validate
-        address_type: Type of processing ("shophouse" or "industrial")
+        address_type: Type of processing ("shophouse", "industrial", or "stratamix")
         
     Returns:
         Dictionary with validation results and warnings
@@ -112,9 +112,10 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
     if len(df.columns) < 1:
         raise CSVValidationError("CSV must contain at least one column (address)")
     
-    # Check maximum columns (should only have exactly 2 columns for shophouse, flexible for industrial)
-    if address_type.lower() == "shophouse" and len(df.columns) > 2:
-        raise CSVValidationError(f"CSV contains {len(df.columns)} columns. For shophouse processing, expected exactly 2 columns: Address, Primary Approved Use")
+    # Check maximum columns (should only have exactly 2 columns for shophouse and stratamix, flexible for industrial)
+    if address_type.lower() in ["shophouse", "stratamix"] and len(df.columns) > 2:
+        use_label = "Primary Approved Use" if address_type.lower() == "shophouse" else "Approved Use"
+        raise CSVValidationError(f"CSV contains {len(df.columns)} columns. For {address_type} processing, expected exactly 2 columns: Address, {use_label}")
     elif address_type.lower() == "industrial" and len(df.columns) > 2:
         validation_result['warnings'].append(f"CSV contains {len(df.columns)} columns. For industrial processing, only the first column (Address) is required. Additional columns will be processed if available.")
     
@@ -164,21 +165,22 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
             validation_result['warnings'].append(f"... and {len(addresses_with_commas) - 5} more addresses with comma issues")
     
     # Validate primary approved use column (column 2) - requirement depends on address type
-    if address_type.lower() == "shophouse":
-        # For shophouse addresses, primary approved use is required
+    if address_type.lower() in ["shophouse", "stratamix"]:
+        # For shophouse and stratamix addresses, primary approved use is required
+        use_label = "Primary Approved Use" if address_type.lower() == "shophouse" else "Approved Use"
         if len(df.columns) < 2:
-            raise CSVValidationError("CSV must contain at least 2 columns for shophouse processing: Address and Primary Approved Use")
+            raise CSVValidationError(f"CSV must contain at least 2 columns for {address_type} processing: Address and {use_label}")
         
         primary_use_col = df.iloc[:, 1]
         
         # Check if primary approved use column is entirely empty
         if primary_use_col.isna().all():
-            raise CSVValidationError("Primary approved use column (column 2) cannot be entirely empty for shophouse processing")
+            raise CSVValidationError(f"{use_label} column (column 2) cannot be entirely empty for {address_type} processing")
         
         # Count empty primary approved use entries
         primary_use_empty = primary_use_col.isna().sum()
         if primary_use_empty > 0:
-            validation_result['warnings'].append(f"Found {primary_use_empty} empty primary approved use entries")
+            validation_result['warnings'].append(f"Found {primary_use_empty} empty {use_label.lower()} entries")
         
         # Validate that primary approved use entries are strings (not numbers or other types)
         non_string_primary_uses = []
@@ -189,12 +191,12 @@ def validate_csv_structure(df: pd.DataFrame, address_type: str) -> Dict[str, any
             if not use_str:  # Empty string after stripping
                 continue
             if use_str.replace('.', '').replace('-', '').isdigit():  # Looks like a number
-                non_string_primary_uses.append(f"Row {i+2}: '{use_str}' - Primary approved use appears to be numeric")
+                non_string_primary_uses.append(f"Row {i+2}: '{use_str}' - {use_label} appears to be numeric")
         
         if non_string_primary_uses:
             validation_result['warnings'].extend(non_string_primary_uses[:5])
             if len(non_string_primary_uses) > 5:
-                validation_result['warnings'].append(f"... and {len(non_string_primary_uses) - 5} more numeric primary approved use issues")
+                validation_result['warnings'].append(f"... and {len(non_string_primary_uses) - 5} more numeric {use_label.lower()} issues")
     
     elif address_type.lower() == "industrial":
         # For industrial addresses, only address column is required
@@ -309,7 +311,7 @@ def extract_csv_data(df: pd.DataFrame, address_type: str) -> Dict[str, List[str]
     
     Args:
         df: pandas DataFrame containing CSV data
-        address_type: Type of processing ("shophouse" or "industrial")
+        address_type: Type of processing ("shophouse", "industrial", or "stratamix")
         
     Returns:
         Dictionary containing extracted addresses and approved uses
@@ -342,7 +344,7 @@ def process_csv_with_validation(address_type: str, csv_file) -> Dict[str, List[s
     Main function to process CSV with full validation and error handling.
     
     Args:
-        address_type: The command, either "shophouse" or "industrial"
+        address_type: The command, either "shophouse", "industrial", or "stratamix"
         csv_file: The uploaded CSV file object
         
     Returns:
@@ -353,8 +355,8 @@ def process_csv_with_validation(address_type: str, csv_file) -> Dict[str, List[s
         ValueError: If address_type is invalid
     """
     # Validate address type
-    if address_type.lower() not in ["shophouse", "industrial"]:
-        raise ValueError("Invalid address type. Must be 'shophouse' or 'industrial'.")
+    if address_type.lower() not in ["shophouse", "industrial", "stratamix"]:
+        raise ValueError("Invalid address type. Must be 'shophouse', 'industrial', or 'stratamix'.")
     
     print(f"🔍 Processing {address_type} CSV file...")
     

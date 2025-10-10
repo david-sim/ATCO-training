@@ -115,6 +115,14 @@ class Config:
         """Get shophouse compliance rules."""
         return self.get('rules.shophouse_compliance_rules', '')
     
+    def get_stratamix_occupant_rules(self) -> str:
+        """Get stratamix occupant rules."""
+        return self.get('rules.stratamix_occupant_rules', '')
+    
+    def get_stratamix_compliance_rules(self) -> str:
+        """Get stratamix compliance rules."""
+        return self.get('rules.stratamix_compliance_rules', '')
+    
     def reload(self) -> None:
         """Reload configuration from file."""
         self._config_data.clear()
@@ -184,3 +192,11 @@ def get_shophouse_occupant_rules() -> str:
 def get_shophouse_compliance_rules() -> str:
     """Get shophouse compliance rules."""
     return config.get_shophouse_compliance_rules()
+
+def get_stratamix_occupant_rules() -> str:
+    """Get stratamix occupant rules."""
+    return config.get_stratamix_occupant_rules()
+
+def get_stratamix_compliance_rules() -> str:
+    """Get stratamix compliance rules."""
+    return config.get_stratamix_compliance_rules()

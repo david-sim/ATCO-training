@@ -270,10 +270,13 @@ def get_occupant_rules(address_type: str = "industrial") -> str:
     try:
         from config_manager import (
             get_shophouse_occupant_rules, 
-            get_industrial_occupant_rules
+            get_industrial_occupant_rules,
+            get_stratamix_occupant_rules
         )
         if address_type.lower() == "shophouse":
             return get_shophouse_occupant_rules()
+        elif address_type.lower() == "stratamix":
+            return get_stratamix_occupant_rules()
         else:
             return get_industrial_occupant_rules()
     except Exception as e:
@@ -286,10 +289,13 @@ def get_compliance_rules(address_type: str = "industrial") -> str:
     try:
         from config_manager import (
             get_shophouse_compliance_rules, 
-            get_industrial_compliance_rules
+            get_industrial_compliance_rules,
+            get_stratamix_compliance_rules
         )
         if address_type.lower() == "shophouse":
             return get_shophouse_compliance_rules()
+        elif address_type.lower() == "stratamix":
+            return get_stratamix_compliance_rules()
         else:
             return get_industrial_compliance_rules()
     except Exception as e:
@@ -535,7 +541,7 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
         
         address_search_results_raw = google_search_entity(address_search_query)
         
-        # Variant address search - different logic for shophouse vs industrial
+        # Variant address search - different logic for shophouse vs industrial/stratamix
         address_type_clean = address_type.strip().lower() if address_type else ""
         if address_type_clean == "shophouse":
             # For shophouse, try to generate an address format variant
@@ -551,7 +557,7 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
                 log_progress(f"🔄 Using fallback variant for shophouse: 'address {clean_address}'")
                 print(f"🔄 Using fallback shophouse variant for search: 'address {clean_address}'")
         else:
-            # For industrial, use address without postal code
+            # For industrial and stratamix, use address without postal code
             clean_address_no_postal = remove_postal_code(clean_address)
             address_search_query_variant = f"{clean_address_no_postal}"
             print(f"🔄 Using industrial address variant: '{address_search_query_variant}'")
