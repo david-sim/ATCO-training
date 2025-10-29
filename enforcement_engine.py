@@ -222,10 +222,60 @@ def remove_postal_code(address):
     return address.strip()
 
 
+def normalize_address_format(address):
+    """
+    Normalize address format by cleaning up common variations.
+    Handles commas, extra spaces, and standardizes formatting.
+    
+    Args:
+        address: The original address string
+        
+    Returns:
+        Normalized address string
+    """
+    if not address:
+        return address
+    
+    # Convert to string and strip
+    address = str(address).strip()
+    
+    # Replace multiple commas or comma-space combinations with single space
+    address = re.sub(r',+\s*', ' ', address)
+    
+    # Normalize multiple spaces to single space
+    address = re.sub(r'\s+', ' ', address)
+    
+    # Clean up unit notation - ensure proper spacing around # and handle spacing in unit numbers
+    address = re.sub(r'\s*#\s*', ' #', address)
+    address = re.sub(r'#(\d)', r'#\1', address)  # Ensure no space after #
+    # Fix spacing in unit numbers like "#05 - 08" to "#05-08"
+    address = re.sub(r'#(\d+)\s*-\s*(\d+)', r'#\1-\2', address)
+    
+    # Standardize postal code format at the end
+    # Handle cases like "Singapore123456" -> "Singapore 123456"
+    address = re.sub(r'Singapore(\d{6})$', r'Singapore \1', address, flags=re.IGNORECASE)
+    
+    # Handle cases like "S123456" -> "S 123456"  
+    address = re.sub(r'S(\d{6})$', r'S \1', address)
+    
+    return address.strip()
+
+
 def generate_variant(address):
     """
     Generate a variant address format for shophouse addresses.
     Converts between unit notation (#01-XX) and suffix notation (A, B, C, D).
+    Enhanced to handle various address formats including commas, block suffixes, and flexible unit patterns.
+    
+    Supported patterns:
+    - Unit to suffix: "61 ALIWAL STREET #01-01, 199937" → "61 ALIWAL STREET 199937"
+    - Unit to suffix: "25 BOAT QUAY #02-03" → "25A BOAT QUAY"  
+    - Suffix to unit: "61A ALIWAL STREET 199937" → "61 ALIWAL STREET #02-01 199937"
+    - Suffix to unit: "61 A ALIWAL STREET 199937" → "61 ALIWAL STREET #02-01 199937"
+    - Block with existing suffix: "109C AMOY STREET #04-00" → "109C AMOY STREET" (removes unit only)
+    - Handles commas, extra spaces, and various postal code formats
+    
+    Floor mapping: #01→"" (no suffix), #02→A, #03→B, #04→C, #05→D
     
     Args:
         address: The original address string
@@ -233,35 +283,78 @@ def generate_variant(address):
     Returns:
         Variant address string or None if no conversion is possible
     """
-    # Accept either 'Singapore 123456', just '123456', 'Singapore', or nothing at the end
-    unit_pattern = re.match(r"^(\d+)\s+(.*)\s+#(0[1-5])-\d{2}(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address)
+    # Clean up the address - handle commas and extra whitespace
+    address_clean = re.sub(r',\s*', ' ', address.strip())  # Replace commas with spaces
+    address_clean = re.sub(r'\s+', ' ', address_clean)     # Normalize whitespace
+    
+    print(f"🔧 [GENERATE-VARIANT] Processing: '{address}' -> '{address_clean}'")
+    
+    # Pattern 1: Unit notation to suffix notation
+    # Handles: "61 ALIWAL STREET #01-01 199937", "109C AMOY STREET #04-00 069929"
+    # More flexible pattern that handles block suffixes and various unit formats
+    unit_pattern = re.match(r"^(\d+[A-Z]?)\s+(.*?)\s+#(0[1-9])-\d{2}(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address_clean, re.IGNORECASE)
     if unit_pattern:
-        block = unit_pattern.group(1)
+        block_with_suffix = unit_pattern.group(1)  # e.g., "61" or "109C"
         street = unit_pattern.group(2).strip()
         floor = unit_pattern.group(3)
         postal = unit_pattern.group(4) if unit_pattern.group(4) else ""
 
-        floor_to_suffix = {"01" : "", "02": "A", "03": "B", "04": "C", "05": "D"}
-        suffix = floor_to_suffix.get(floor)
-        if suffix is not None:
-            return f"{block}{suffix} {street} {postal}".strip()
-        else:
-            return None
+        print(f"🔧 [UNIT->SUFFIX] Block: '{block_with_suffix}', Street: '{street}', Floor: '{floor}', Postal: '{postal}'")
 
-    suffix_pattern = re.match(r"^(\d+)([A-D])\s+(.*?)(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address)
+        # Check if block already has a letter suffix
+        block_letter_match = re.match(r"^(\d+)([A-Z])$", block_with_suffix)
+        if block_letter_match:
+            # Block already has suffix (e.g., "109C"), keep as is for this conversion
+            base_block = block_letter_match.group(1)
+            existing_suffix = block_letter_match.group(2)
+            print(f"🔧 [UNIT->SUFFIX] Block has existing suffix: {base_block}{existing_suffix}")
+            # For blocks with existing suffix, we don't convert to floor suffix format
+            # Instead, we might want to try removing the unit notation
+            result = f"{block_with_suffix} {street} {postal}".strip()
+            print(f"🔧 [UNIT->SUFFIX] Result (block with suffix): '{result}'")
+            return result
+        else:
+            # Normal conversion for blocks without suffix
+            floor_to_suffix = {"01": "", "02": "A", "03": "B", "04": "C", "05": "D"}
+            suffix = floor_to_suffix.get(floor)
+            if suffix is not None:
+                result = f"{block_with_suffix}{suffix} {street} {postal}".strip()
+                print(f"🔧 [UNIT->SUFFIX] Result: '{result}'")
+                return result
+
+    # Pattern 2: Suffix notation to unit notation
+    # Handles: "61A ALIWAL STREET 199937" and "61 A ALIWAL STREET 199937" (with space)
+    suffix_pattern = re.match(r"^(\d+)\s*([A-D])\s+(.*?)(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address_clean, re.IGNORECASE)
     if suffix_pattern:
         block = suffix_pattern.group(1)
-        suffix = suffix_pattern.group(2)
+        suffix = suffix_pattern.group(2).upper()
         street = suffix_pattern.group(3).strip()
         postal = suffix_pattern.group(4) if suffix_pattern.group(4) else ""
+
+        print(f"🔧 [SUFFIX->UNIT] Block: '{block}', Suffix: '{suffix}', Street: '{street}', Postal: '{postal}'")
 
         suffix_to_floor = {"A": "02", "B": "03", "C": "04", "D": "05"}
         floor = suffix_to_floor.get(suffix)
         if floor is not None:
-            return f"{block} {street} #{floor}-01 {postal}".strip()
-        else:
-            return None
+            result = f"{block} {street} #{floor}-01 {postal}".strip()
+            print(f"🔧 [SUFFIX->UNIT] Result: '{result}'")
+            return result
 
+    # Pattern 3: Try to create simplified variant without unit/floor info
+    # For addresses that don't match standard patterns but might benefit from simplification
+    simple_pattern = re.match(r"^(\d+[A-Z]?)\s+(.*?)(?:\s+#[\d-]+)?(?:\s*,\s*)?(?:\s+(Singapore\s*\d{0,6}|\d{6}))?$", address_clean, re.IGNORECASE)
+    if simple_pattern:
+        block = simple_pattern.group(1)
+        street = simple_pattern.group(2).strip()
+        postal = simple_pattern.group(3) if simple_pattern.group(3) else ""
+        
+        # Only return this if it's different from the original
+        simplified = f"{block} {street} {postal}".strip()
+        if simplified != address_clean and simplified != address.strip():
+            print(f"🔧 [SIMPLIFIED] Result: '{simplified}'")
+            return simplified
+
+    print(f"🔧 [GENERATE-VARIANT] No variant generated for: '{address}'")
     return None
 
 
@@ -545,17 +638,20 @@ def process_single_address(address: str, llm: Any, primary_approved_use: str = "
         address_type_clean = address_type.strip().lower() if address_type else ""
         if address_type_clean == "shophouse":
             # For shophouse, try to generate an address format variant
-            variant_address = generate_variant(clean_address)
+            # First normalize the address format to handle commas, spacing, etc.
+            normalized_address = normalize_address_format(clean_address)
+            variant_address = generate_variant(normalized_address)
+            print(f"🔍 [ADDRESS-SEARCH] Normalized: '{clean_address}' -> '{normalized_address}'")
             print(f"🔍 [ADDRESS-SEARCH] Generated variant address: '{variant_address}'")
             if variant_address:
                 address_search_query_variant = variant_address
                 log_progress(f"🔄 Generated shophouse variant: '{variant_address}'")
                 print(f"🔄 Using shophouse variant for search: '{variant_address}'")
             else:
-                # Fallback to standard variant if no format conversion possible
-                address_search_query_variant = f"{clean_address}"
-                log_progress(f"🔄 Using fallback variant for shophouse: 'address {clean_address}'")
-                print(f"🔄 Using fallback shophouse variant for search: 'address {clean_address}'")
+                # Fallback to normalized address if no format conversion possible
+                address_search_query_variant = normalized_address
+                log_progress(f"🔄 Using normalized address for shophouse: '{normalized_address}'")
+                print(f"🔄 Using normalized shophouse address for search: '{normalized_address}'")
         else:
             # For industrial and stratamix, use address without postal code
             clean_address_no_postal = remove_postal_code(clean_address)
