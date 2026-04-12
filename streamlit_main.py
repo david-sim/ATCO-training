@@ -12,11 +12,10 @@ st.cache_data.clear()
 from ui_components import (
     setup_page_config, 
     display_sidebar, 
-    display_file_upload_section, 
-    process_file_with_ui,
-    process_single_record_with_ui,
-    display_persistent_results,
-    display_chat_interface
+    display_logbook_upload_section,
+    process_logbook_with_ui,
+    display_persistent_logbook_results,
+    display_logbook_results
 )
 from about_page import display_about_page
 from methodology_page import display_methodology_page
@@ -25,103 +24,63 @@ from methodology_page import display_methodology_page
 warnings.filterwarnings("ignore", message="Importing verbose from langchain root module is no longer supported.*")
 
 def display_main_page():
-    """Display the main processing page."""
+    """Display the main processing page for pilot licensing."""
     # Main content area
-    st.title("🛡️ Smart Compliance Operations Unit Tool")
+    st.title("✈️ Pilot Licensing Assessment Tool")
     
     st.markdown("""
-    Welcome to the AI-powered smart compliance operations system. You can either upload a CSV file 
-    for bulk processing or enter a single record manually for quick analysis.
+    Welcome to the AI-powered pilot licensing assessment system. Upload your pilot logbook images 
+    and the system will extract flight data and assess your eligibility for different pilot licenses.
     """)
     
     # Initialize session state for persistent results
-    if 'processing_results' not in st.session_state:
-        st.session_state.processing_results = None
-    if 'last_processed_inputs' not in st.session_state:
-        st.session_state.last_processed_inputs = None
+    if 'logbook_results' not in st.session_state:
+        st.session_state.logbook_results = None
+    if 'last_processed_logbook' not in st.session_state:
+        st.session_state.last_processed_logbook = None
     
-    # File upload and processing section (now includes manual entry option)
-    uploaded_file, address_type, single_record_data = display_file_upload_section()
+    # Logbook upload section
+    uploaded_image = display_logbook_upload_section()
     
     # Create current input signature for change detection
-    current_inputs = {
-        'file_name': uploaded_file.name if uploaded_file else None,
-        'file_size': uploaded_file.size if uploaded_file else None,
-        'address_type': address_type,
-        'single_record': single_record_data
+    current_input = {
+        'file_name': uploaded_image.name if uploaded_image else None,
+        'file_size': uploaded_image.size if uploaded_image else None
     }
     
-    # Check if inputs have changed (clear results if they have)
-    if st.session_state.last_processed_inputs != current_inputs:
-        if st.session_state.last_processed_inputs is not None:  # Don't clear on first load
-            st.session_state.processing_results = None
-            # st.info("🔄 Input changed - previous results cleared")
+    # Check if input has changed (clear results if it has)
+    if st.session_state.last_processed_logbook != current_input:
+        if st.session_state.last_processed_logbook is not None:  # Don't clear on first load
+            st.session_state.logbook_results = None
     
-    # Determine processing mode and validate inputs
-    processing_ready = False
-    processing_mode = None
-    
-    if uploaded_file is not None and address_type:
-        processing_ready = True
-        processing_mode = "file"
-    elif single_record_data is not None and address_type:
-        processing_ready = True
-        processing_mode = "single"
-    
-    # Show processing button if ready
-    if processing_ready:
-        if processing_mode == "file":
-            button_label = "🚀 Start Processing CSV File"
-            button_help = f"Process {uploaded_file.name} with {address_type} address type"
-        else:
-            button_label = "🚀 Process Single Record"
-            button_help = f"Process the entered address as {address_type} type"
-        
-        if st.button(button_label, type="primary", use_container_width=True, 
-                    help=button_help, key="start_processing_button"):
+    # Show processing button if image is uploaded
+    if uploaded_image is not None:
+        if st.button("🚀 Analyze Logbook", type="primary", use_container_width=True,
+                    help="Process the uploaded logbook image and assess license eligibility"):
             # Clear progress messages for fresh processing run
-            st.session_state.progress_messages = []
-            # Flag to indicate we're starting processing (not showing results)
-            st.session_state.show_persistent_results = False
+            if 'logbook_progress_messages' in st.session_state:
+                st.session_state.logbook_progress_messages = []
+            # Flag to indicate we're starting processing
+            st.session_state.show_persistent_logbook_results = False
             
-            # Start processing immediately (don't use rerun)
-            with st.spinner("Processing..."):
-                if processing_mode == "file":
-                    success, result_data = process_file_with_ui(uploaded_file, address_type)
-                else:
-                    success, result_data = process_single_record_with_ui(single_record_data, address_type)
+            # Start processing
+            with st.spinner("Analyzing logbook..."):
+                success, result_data = process_logbook_with_ui(uploaded_image)
                 
                 if success:
-                    # Store results in session state and enable persistent display
-                    st.session_state.processing_results = result_data
-                    st.session_state.last_processed_inputs = current_inputs
-                    st.session_state.show_persistent_results = True
-                    st.toast('Processing completed successfully! Scroll down to view or download the results and Summary.')
+                    # Store results in session state
+                    st.session_state.logbook_results = result_data
+                    st.session_state.last_processed_logbook = current_input
+                    st.session_state.show_persistent_logbook_results = True
+                    st.toast('✅ Analysis completed! Scroll down to view results.')
                 else:
-                    st.error("Processing failed. Please check your input and try again.")
-    else:
-        # Show help text for what's needed
-        if address_type and uploaded_file is None and single_record_data is None:
-            st.info("👆 Please either upload a CSV file or enter a single record manually to continue")
+                    st.error("Processing failed. Please check your image and try again.")
     
-    # Display persistent results if available and flag is set
-    if (st.session_state.processing_results is not None and 
-        st.session_state.get('show_persistent_results', True)):  # Default to True for backward compatibility
-        # Show persistent processing log first (in original location)
-        if 'progress_messages' in st.session_state and st.session_state.progress_messages:
-            st.markdown(f"### Processing {address_type.title()} Addresses")
-            st.success(f"✅ Processing completed! Processed {len(st.session_state.processing_results[0])} addresses.")
-            st.markdown("#### Processing Log")
-            st.text_area(
-                "Progress Log",
-                value="\n".join(st.session_state.progress_messages),
-                height=200,
-                disabled=True,
-                key=f"persistent_main_progress_log_{len(st.session_state.progress_messages)}"
-            )
-        
+    # Display persistent results if available
+    if (st.session_state.logbook_results is not None and 
+        st.session_state.get('show_persistent_logbook_results', True)):
         st.markdown("---")
-        display_persistent_results(st.session_state.processing_results, address_type)
+        display_logbook_results(st.session_state.logbook_results)
 
 def main():
     """Main application entry point."""

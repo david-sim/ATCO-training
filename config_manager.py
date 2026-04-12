@@ -200,3 +200,33 @@ def get_stratamix_occupant_rules() -> str:
 def get_stratamix_compliance_rules() -> str:
     """Get stratamix compliance rules."""
     return config.get_stratamix_compliance_rules()
+
+def get_logbook_extraction_rules() -> str:
+    """Get logbook extraction rules for pilot licensing."""
+    return config.get('rules.logbook_extraction_rules', '')
+
+def get_license_assessment_rules() -> str:
+    """Get license assessment rules for pilot licensing."""
+    return config.get('rules.license_assessment_rules', '')
+
+def get_general_aviation_knowledge() -> str:
+    """Get general aviation knowledge for pilot licensing."""
+    return config.get('rules.general_aviation_knowledge', '')
+
+def get_openai_api_key() -> str:
+    """Get OpenAI API key from environment or Streamlit secrets."""
+    import os
+    try:
+        import streamlit as st
+        return st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+    except:
+        return os.getenv("OPENAI_API_KEY", "")
+
+def get_azure_api_key() -> str:
+    """Get Azure API key from environment or Streamlit secrets."""
+    import os
+    try:
+        import streamlit as st
+        return st.secrets.get("AZURE_API_KEY", os.getenv("AZURE_API_KEY", ""))
+    except:
+        return os.getenv("AZURE_API_KEY", "")
