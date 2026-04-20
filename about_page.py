@@ -1,5 +1,5 @@
 """
-About Us page for the Smart Compliance Operations Unit Tool.
+About Us page for the ATC Training Progress Tracker.
 Contains project information, scope, objectives, and methodology.
 """
 import streamlit as st
@@ -16,12 +16,13 @@ def display_about_page():
     st.markdown("## 📋 Project Overview")
     
     st.markdown("""
-    **Smart Compliance Operations Unit Tool** is an AI-assisted prototype developed to revolutionise 
-    the way unit addresses are processed for occupant identification and compliance detection 
-    of unauthorised use.
+    **ATC Training Progress Tracker** is an AI-assisted platform developed to revolutionize 
+    the way Air Traffic Controller trainees are monitored, evaluated, and developed throughout 
+    their training journey.
     
-    This innovative solution combines advanced artificial intelligence with automated 
-    processing capabilities to streamline smart compliance operations and ensure regulatory compliance.
+    This innovative solution combines advanced artificial intelligence with comprehensive 
+    performance tracking capabilities to streamline training management and ensure optimal 
+    trainee development outcomes.
     """)
     
     # Project Scope Section
@@ -30,15 +31,15 @@ def display_about_page():
     st.markdown("""
     The scope of this project encompasses the development of an intelligent system that:
     
-    • **Resolves Unit Addresses**: Automatically processes and standardises address formats
+    • **Tracks Training Progress**: Real-time monitoring of trainee competency development
     
-    • **Identifies Occupants**: Uses AI to determine current occupants of specified addresses
+    • **Manages Training Plans**: Collaborative planning between trainees and training managers
     
-    • **Detects Compliance Issues**: Identifies potential unauthorised use of spaces
+    • **Evaluates Performance**: Comprehensive assessment and validation of skills
     
-    • **Automates Assessment**: Reduces manual processing time and human error
+    • **Provides AI Insights**: Intelligent recommendations for personalized training paths
     
-    • **Provides Actionable Insights**: Generates comprehensive reports for enforcement actions
+    • **Generates Reports**: Automated reporting and certification documentation
     """)
     
     # Objective Section
@@ -49,87 +50,139 @@ def display_about_page():
     with col1:
         st.markdown("""
         ### Primary Goals:
-        1. **Occupant Identification**
-        2. **Compliance Assessment**
-        3. **Automated Processing**
+        1. **Competency Tracking**
+        2. **Training Optimization**
+        3. **Performance Validation**
         """)
     
     with col2:
         st.markdown("""
-        The primary objective is to create a two-stage automated process:
+        The primary objective is to create a comprehensive training management system that:
         
-        **Stage 1: Occupant Determination**  
-        Accurately identify the current occupant of each unit address using AI-powered 
-        analysis of available data sources.
+        **Phase 1: Progress Monitoring**  
+        Track trainee progress across all competency areas with real-time dashboards 
+        and detailed analytics showing development patterns and areas requiring focus.
         
-        **Stage 2: Compliance Verification**  
-        Check whether the identified occupant's use of the space aligns with the 
-        approved use designation for that address.
+        **Phase 2: Training Enhancement**  
+        Facilitate training plan discussions and provide AI-powered recommendations 
+        to optimize learning paths based on individual trainee needs and performance.
+        
+        **Phase 3: Validation & Certification**  
+        Manage formal assessments and validation processes to ensure trainees meet 
+        all required standards before certification.
         """)
     
-    # LLM Implementation Section
-    st.markdown("## 🤖 LLM Model Implementation")
+    # AI Implementation Section
+    st.markdown("## 🤖 AI Model Implementation")
     
     st.markdown("""
-    The Large Language Model (LLM) is strategically implemented across **three critical areas** 
-    to ensure comprehensive and accurate processing:
+    The AI system is strategically implemented across **three critical areas** 
+    to ensure comprehensive training support:
     """)
     
-    # Create three columns for the LLM areas
+    # Create three columns for the AI areas
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        ### 🕵️ Area 1: Occupant Determination
+        ### 📊 Area 1: Performance Analysis
         
-        **Purpose**: Identify current occupants
+        **Purpose**: Analyze trainee performance data
         
         **Process**:
-        - Analyse search results and data sources
-        - Cross-reference multiple information points
-        - Apply intelligent matching algorithms
-        - Verify occupant authenticity
+        - Review competency scores and trends
+        - Identify strengths and weaknesses
+        - Compare against cohort benchmarks
+        - Detect performance patterns
         
-        **Output**: Confirmed occupant name or "Need more information"
+        **Output**: Detailed performance insights and trend analysis
         """)
     
     with col2:
         st.markdown("""
-        ### 🏢 Area 2: Business Activity Assessment
+        ### 🎯 Area 2: Training Recommendations
         
-        **Purpose**: Understand nature of business operations
+        **Purpose**: Generate personalized training suggestions
         
         **Process**:
-        - Research occupant's business activities
-        - Analyse operational characteristics
-        - Categorise business type and functions
-        - Assess scale and scope of operations
+        - Analyze learning patterns
+        - Identify competency gaps
+        - Recommend targeted training activities
+        - Optimize training schedules
         
-        **Output**: Detailed business activity profile
+        **Output**: AI-powered training plan recommendations
         """)
     
     with col3:
         st.markdown("""
-        ### ⚖️ Area 3: Compliance Verification
+        ### ✅ Area 3: Assessment Evaluation
         
-        **Purpose**: Check alignment with approved use
+        **Purpose**: Support validation and certification
         
         **Process**:
-        - Compare business activities with approved use
-        - Apply regulatory compliance rules
-        - Assess compatibility and violations
-        - Generate compliance determination
+        - Evaluate assessment results
+        - Generate performance summaries
+        - Predict certification readiness
+        - Provide improvement insights
         
-        **Output**: Compliance level and detailed rationale
+        **Output**: Comprehensive assessment reports and certification readiness scores
         """)
     
-    # Footer
-    st.markdown("---")
+    # Key Features Section
+    st.markdown("## 🌟 Key Features")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### Dashboard & Monitoring
+        - Real-time competency tracking
+        - Visual performance charts
+        - Progress timeline view
+        - Comparative analytics
+        
+        ### Training Management
+        - Collaborative training planning
+        - Session scheduling and tracking
+        - Focus area identification
+        - Training history logs
+        """)
+    
+    with col2:
+        st.markdown("""
+        ### Assessment & Validation
+        - Comprehensive evaluation forms
+        - Automated scoring and tracking
+        - Certification management
+        - Assessment history
+        
+        ### AI-Powered Insights
+        - Performance predictions
+        - Personalized recommendations
+        - Automated report generation
+        - Intelligent analytics
+        """)
+    
+    # Technology Stack
+    st.markdown("## 💻 Technology Stack")
+    
     st.markdown("""
-    <div style='text-align: center; color: #666666; font-style: italic;'>
-    Smart Compliance Operations Unit Tool - AI-Assisted Compliance Management System
-    </div>
-    """, unsafe_allow_html=True)
+    - **Framework**: Streamlit (Python-based web application)
+    - **Data Visualization**: Plotly for interactive charts and graphs
+    - **AI Integration**: OpenAI GPT-4o for intelligent insights
+    - **Data Processing**: Pandas for analytics and reporting
+    - **UI/UX**: Modern, responsive design with intuitive navigation
+    """)
+    
+    st.markdown("---")
+    
+    # Contact or Additional Info
+    st.markdown("## 📞 Contact Information")
+    
+    st.info("""
+    For questions, support, or feedback about the ATC Training Progress Tracker, 
+    please contact your training administrator or system support team.
+    """)
 
 
 if __name__ == "__main__":

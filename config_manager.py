@@ -1,5 +1,5 @@
 """
-Configuration management utility for the smart compliance operations application.
+Configuration management utility for the ATC Training Progress Tracker.
 
 This module provides centralized configuration management by loading settings
 from config.json and providing easy access to configuration values.
@@ -99,30 +99,6 @@ class Config:
         """Get all rules configuration values."""
         return self._config_data.get('rules', {})
     
-    def get_industrial_occupant_rules(self) -> str:
-        """Get industrial occupant rules."""
-        return self.get('rules.industrial_occupant_rules', '')
-    
-    def get_industrial_compliance_rules(self) -> str:
-        """Get industrial compliance rules."""
-        return self.get('rules.industrial_compliance_rules', '')
-    
-    def get_shophouse_occupant_rules(self) -> str:
-        """Get shophouse occupant rules."""
-        return self.get('rules.shophouse_occupant_rules', '')
-    
-    def get_shophouse_compliance_rules(self) -> str:
-        """Get shophouse compliance rules."""
-        return self.get('rules.shophouse_compliance_rules', '')
-    
-    def get_stratamix_occupant_rules(self) -> str:
-        """Get stratamix occupant rules."""
-        return self.get('rules.stratamix_occupant_rules', '')
-    
-    def get_stratamix_compliance_rules(self) -> str:
-        """Get stratamix compliance rules."""
-        return self.get('rules.stratamix_compliance_rules', '')
-    
     def reload(self) -> None:
         """Reload configuration from file."""
         self._config_data.clear()
@@ -176,42 +152,6 @@ def get_azure_temperature() -> str:
 def get_azure_api_version() -> str:
     """Get Azure OpenAI API version."""
     return config.get('azure_llm.api_version', '2024-02-15-preview')
-
-def get_industrial_occupant_rules() -> str:
-    """Get industrial occupant rules."""
-    return config.get_industrial_occupant_rules()
-
-def get_industrial_compliance_rules() -> str:
-    """Get industrial compliance rules."""
-    return config.get_industrial_compliance_rules()
-
-def get_shophouse_occupant_rules() -> str:
-    """Get shophouse occupant rules."""
-    return config.get_shophouse_occupant_rules()
-
-def get_shophouse_compliance_rules() -> str:
-    """Get shophouse compliance rules."""
-    return config.get_shophouse_compliance_rules()
-
-def get_stratamix_occupant_rules() -> str:
-    """Get stratamix occupant rules."""
-    return config.get_stratamix_occupant_rules()
-
-def get_stratamix_compliance_rules() -> str:
-    """Get stratamix compliance rules."""
-    return config.get_stratamix_compliance_rules()
-
-def get_logbook_extraction_rules() -> str:
-    """Get logbook extraction rules for pilot licensing."""
-    return config.get('rules.logbook_extraction_rules', '')
-
-def get_license_assessment_rules() -> str:
-    """Get license assessment rules for pilot licensing."""
-    return config.get('rules.license_assessment_rules', '')
-
-def get_general_aviation_knowledge() -> str:
-    """Get general aviation knowledge for pilot licensing."""
-    return config.get('rules.general_aviation_knowledge', '')
 
 def get_openai_api_key() -> str:
     """Get OpenAI API key from environment or Streamlit secrets."""

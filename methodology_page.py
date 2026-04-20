@@ -1,5 +1,5 @@
 """
-Methodology page for the Smart Compliance Operations Unit Tool.
+Methodology page for the ATC Training Progress Tracker.
 Contains detailed methodology, technology stack, and benefits information.
 """
 import streamlit as st
@@ -14,49 +14,139 @@ def display_methodology_page():
     st.markdown("---")
     
     # Methodology Section
-    st.markdown("## 🔬 Processing Methodology")
+    st.markdown("## 🔬 Training Management Methodology")
     
-    with st.expander("📊 Processing Workflow", expanded=True):
+    with st.expander("📊 Training Process Workflow", expanded=True):
         st.markdown("""
         ### Step-by-Step Process:
         
-        1. **Data Input**: Upload CSV files containing addresses and approved use information
+        1. **Trainee Onboarding**: 
+           - Initial assessment and baseline competency evaluation
+           - Training plan creation and goal setting
+           - Schedule establishment
         
-        2. **Address Resolution**: Clean and standardise address formats for optimal processing
+        2. **Continuous Monitoring**: 
+           - Real-time competency tracking across all eight core areas
+           - Session-by-session performance recording
+           - Progress visualization through dashboards and charts
         
-        3. **Information Gathering**: 
-           - Perform targeted web searches for address information
-           - Collect occupant-related data from multiple sources
-           - Generate search result variants for comprehensive coverage
+        3. **Training Plan Development**:
+           - Collaborative discussions between trainee and training manager
+           - AI-powered recommendations for personalized training paths
+           - Activity scheduling and focus area identification
+           - Regular plan reviews and adjustments
         
-        4. **AI Analysis Phase 1 - Occupant Identification**:
-           - Process search results using advanced LLM analysis
-           - Apply occupant identification rules and criteria
-           - Cross-validate findings across data sources
+        4. **Performance Analysis**:
+           - Comprehensive data collection from all training sessions
+           - Trend analysis and pattern recognition
+           - Comparative evaluation against cohort and standards
+           - Strengths and weaknesses identification
         
-        5. **AI Analysis Phase 2 - Business Assessment**:
-           - Research identified occupant's business operations
-           - Analyse business activities and operational scope
-           - Categorise business type and functions
+        5. **AI-Powered Insights**:
+           - Performance prediction and trajectory modeling
+           - Personalized training recommendations
+           - Automated summary generation
+           - Intelligent competency gap analysis
         
-        6. **AI Analysis Phase 3 - Compliance Check**:
-           - Compare business activities with approved use classifications
-           - Apply compliance rules specific to address type (shophouse/industrial/stratamix)
-           - Generate compliance determination with detailed rationale
+        6. **Validation Assessment**:
+           - Formal evaluation across all competency areas
+           - Structured assessment forms and scoring
+           - Certification readiness evaluation
+           - Final validation and certification
         
-        7. **Results Generation**: 
-           - Compile comprehensive processing results
-           - Generate downloadable reports and summaries
-           - Provide actionable compliance insights
+        7. **Reporting & Documentation**: 
+           - Automated report generation
+           - Progress tracking documentation
+           - Certification records
+           - Historical performance archives
         """)
         
-        # Add workflow flowchart illustration
+        # Add workflow flowchart illustration (placeholder)
         st.markdown("### 📊 Process Flow Illustration")
-        try:
-            flowchart_image = Image.open("imgs/process_flowchart_white.png")
-            st.image(flowchart_image, caption="Smart Compliance Operations Workflow", width=600)
-        except:
-            st.warning("Process flowchart image not found")
+        st.info("Training workflow visualization: Dashboard → Training Plan → Performance Analysis → Validation → Certification")
+    
+    # Competency Framework
+    st.markdown("## 🎯 Competency Framework")
+    
+    st.markdown("""
+    The ATC Training Progress Tracker evaluates trainees across **eight core competency areas**:
+    """)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### 1. Communication
+        Verbal and written communication skills, clarity, professionalism, and effectiveness 
+        in conveying critical information under all conditions.
+        
+        ### 2. Situational Awareness
+        Ability to maintain awareness of all aircraft, weather conditions, airspace status, 
+        and potential conflicts or hazards.
+        
+        ### 3. Decision Making
+        Quality and speed of decisions, risk assessment, prioritization, and ability to 
+        make sound judgments under pressure.
+        
+        ### 4. Workload Management
+        Capacity to handle multiple tasks, prioritize effectively, maintain performance 
+        during peak traffic, and manage stress.
+        """)
+    
+    with col2:
+        st.markdown("""
+        ### 5. Teamwork
+        Collaboration with colleagues, information sharing, support provision, and 
+        contribution to team effectiveness.
+        
+        ### 6. Technical Knowledge
+        Understanding of regulations, procedures, equipment, airspace structure, and 
+        theoretical concepts.
+        
+        ### 7. Procedures
+        Adherence to standard operating procedures, consistency, and proper protocol 
+        application in all scenarios.
+        
+        ### 8. Problem Solving
+        Ability to identify issues, analyze problems, develop solutions, and handle 
+        non-standard situations effectively.
+        """)
+    
+    st.markdown("---")
+    
+    # Scoring System
+    st.markdown("## 📊 Scoring & Evaluation System")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.success("""
+        ### ✅ Proficient (80-100%)
+        - Consistently meets or exceeds standards
+        - Demonstrates mastery
+        - Requires minimal guidance
+        - Ready for independent operation
+        """)
+    
+    with col2:
+        st.warning("""
+        ### 🟡 Developing (70-79%)
+        - Generally meets standards
+        - Shows progress
+        - Requires some supervision
+        - On track for proficiency
+        """)
+    
+    with col3:
+        st.error("""
+        ### 🔴 Needs Improvement (<70%)
+        - Below expected standards
+        - Requires focused training
+        - Needs close supervision
+        - Improvement plan required
+        """)
+    
+    st.markdown("---")
     
     # Technology Stack Section
     st.markdown("## 💻 Technology Stack")
@@ -69,16 +159,16 @@ def display_methodology_page():
         - **Python**: Primary programming language
         - **Streamlit**: Web application framework
         - **Pandas**: Data processing and analysis
-        - **LangChain**: LLM integration and prompt management
+        - **Plotly**: Interactive data visualization
         """)
     
     with tech_col2:
         st.markdown("""
         ### AI & Processing:
-        - **Large Language Model**: GPT-powered analysis
-        - **Search Integration**: Automated web search capabilities
-        - **CSV Processing**: Automated file handling and validation
-        - **Real-time Processing**: Live progress tracking and updates
+        - **OpenAI GPT-4o**: AI-powered insights and analysis
+        - **Real-time Analytics**: Live performance tracking
+        - **Automated Reporting**: Document generation
+        - **Data Persistence**: Session state management
         """)
     
     # Benefits Section
@@ -89,32 +179,88 @@ def display_methodology_page():
     with benefits_col1:
         st.markdown("""
         ### 🚀 Efficiency
-        - Automated processing reduces manual effort
-        - Batch processing capabilities
-        - Real-time progress tracking
-        - Instant results generation
+        - Centralized training management
+        - Automated tracking and reporting
+        - Real-time progress visibility
+        - Streamlined assessment processes
         """)
     
     with benefits_col2:
         st.markdown("""
-        ### 🎯 Accuracy
-        - AI-powered analysis reduces human error
-        - Consistent application of compliance rules
-        - Multiple data source verification
-        - Comprehensive result validation
+        ### 🎯 Effectiveness
+        - Personalized training paths
+        - Data-driven decision making
+        - Early intervention capabilities
+        - Optimized learning outcomes
         """)
     
     with benefits_col3:
         st.markdown("""
-        ### 📊 Insights
-        - Detailed compliance assessments
-        - Comprehensive summary reports
-        - Actionable enforcement recommendations
-        - Statistical analysis and trends
+        ### 📈 Insights
+        - AI-powered recommendations
+        - Performance predictions
+        - Trend analysis
+        - Comparative benchmarking
         """)
     
-    # Implementation Details
-    st.markdown("## ⚙️ Implementation Details")
+    st.markdown("---")
+    
+    # AI Integration
+    st.markdown("## 🤖 AI Integration")
+    
+    st.markdown("""
+    The system integrates artificial intelligence to enhance training management:
+    
+    **1. Performance Analysis**  
+    AI analyzes trainee performance data to identify patterns, predict outcomes, and 
+    highlight areas requiring attention.
+    
+    **2. Personalized Recommendations**  
+    Based on individual learning patterns and competency gaps, the AI suggests tailored 
+    training activities and schedules.
+    
+    **3. Automated Summaries**  
+    AI generates comprehensive performance summaries, assessment reports, and progress 
+    documentation automatically.
+    
+    **4. Predictive Modeling**  
+    The system predicts certification readiness, estimates time to competency targets, 
+    and identifies potential training challenges.
+    """)
+    
+    st.info("""
+    **Note**: AI features are designed to support and enhance human decision-making, 
+    not replace the expertise of training managers and assessors.
+    """)
+    
+    st.markdown("---")
+    
+    # Best Practices
+    st.markdown("## 📚 Best Practices")
+    
+    st.markdown("""
+    ### For Training Managers:
+    - Conduct regular training plan reviews (weekly recommended)
+    - Use AI recommendations as guidance, not directives
+    - Document all assessment observations thoroughly
+    - Provide timely, constructive feedback to trainees
+    - Monitor trends across multiple trainees for program improvement
+    
+    ### For Trainees:
+    - Review dashboard regularly to track progress
+    - Be proactive in identifying areas needing focus
+    - Engage actively in training plan discussions
+    - Prepare for assessments by reviewing performance history
+    - Use AI insights to guide self-directed learning
+    
+    ### For Administrators:
+    - Ensure data accuracy and completeness
+    - Regular system configuration reviews
+    - Monitor AI model performance
+    - Generate periodic program effectiveness reports
+    - Maintain certification and validation standards
+    """)
+
     
     impl_col1, impl_col2 = st.columns(2)
     

@@ -1,65 +1,66 @@
-# ✈️ Pilot Licensing Assessment Tool
+# 🎯 ATC Training Progress Tracker
 
-An AI-powered pilot licensing assessment system that analyzes pilot logbooks to extract flight data and assess eligibility for various pilot licenses. The tool uses advanced vision AI to read handwritten logbook entries and automatically evaluates license requirements.
+An AI-powered training management system for Air Traffic Controller trainees. The system provides comprehensive progress tracking, competency monitoring, training plan management, performance analytics, and validation assessments throughout the ATC training journey.
 
 ## 🚀 Key Features
 
-### 📸 Logbook Image Processing
-- **Image Upload**: Upload clear scans or photos of pilot logbook pages
-- **AI Vision Analysis**: Automatic extraction of flight data from handwritten entries
-- **Multi-Format Support**: Accepts PNG, JPG, JPEG, and PDF formats
-- **Smart Data Recognition**: Interprets aviation abbreviations and logbook conventions
+### 📊 Dashboard & Progress Tracking
+- **Real-Time Monitoring**: Track trainee progress across eight core competency areas
+- **Visual Analytics**: Interactive charts and graphs displaying competency trends
+- **Progress Timeline**: Historical view of trainee development over time
+- **Metrics Overview**: Quick insights into overall competency scores and training status
 
-### 🤖 AI-Powered Data Extraction
-- **Flight Entry Parsing**: Extracts individual flight records including:
-  - Date of Flight
-  - Aircraft Type and Registration
-  - Departure and Arrival Locations
-  - Number of Landings
-  - Flight Time (Total, PIC, Dual, Cross Country, Night, Instrument)
-  - Remarks and Notes
-- **Handwriting Recognition**: Handles variations in handwriting styles
-- **Abbreviation Interpretation**: Understands common aviation abbreviations (PIC, XC, IFR, etc.)
+### 🎯 Core Competency Areas
+The system tracks performance across eight essential ATC competencies:
+1. **Communication**: Verbal and written communication effectiveness
+2. **Situational Awareness**: Ability to maintain awareness of all operational elements
+3. **Decision Making**: Quality and speed of operational decisions
+4. **Workload Management**: Capacity to handle multiple tasks under pressure
+5. **Teamwork**: Collaboration and coordination with colleagues
+6. **Technical Knowledge**: Understanding of regulations, procedures, and equipment
+7. **Procedures**: Adherence to standard operating procedures
+8. **Problem Solving**: Ability to identify and resolve issues effectively
 
-### 📊 Comprehensive Flight Hour Analysis
-- **Automatic Summaries**: Calculates total hours across all categories
-- **Hour Breakdown**: Detailed statistics for:
-  - Total Flight Time
-  - Pilot in Command (PIC) Hours
-  - Dual Instruction Hours
-  - Cross Country Hours
-  - Night Flight Hours
-  - Instrument Flight Hours
-- **Aircraft Type Tracking**: Identifies unique aircraft types flown
-- **Date Range Analysis**: Tracks flight experience timeline
+### 📋 Training Plan Management
+- **Collaborative Planning**: Discuss and develop training plans with training managers
+- **Activity Scheduling**: Plan and schedule training sessions and activities
+- **Focus Area Identification**: Identify areas requiring additional training
+- **AI-Powered Recommendations**: Get personalized training suggestions based on performance data
+- **Meeting Documentation**: Record training plan discussions and action items
 
-### 🎓 License Eligibility Assessment
-- **Multi-License Evaluation**: Assesses eligibility for:
-  - **Private Pilot License (PPL)**
-  - **Commercial Pilot License (CPL)**
-  - **Instrument Rating (IR)**
-  - **Airline Transport Pilot License (ATPL)**
-- **Requirement Matching**: Compares flight hours against regulatory requirements
-- **Gap Analysis**: Identifies missing requirements and hours needed
-- **Actionable Recommendations**: Suggests next steps for license attainment
+### 📈 Performance Summary
+- **Comprehensive Analytics**: Detailed performance analysis across all competency areas
+- **Trend Analysis**: Track performance improvements and identify patterns
+- **Session Tracking**: Monitor performance by training session type
+- **Assessment History**: Complete record of all assessments and evaluations
+- **Comparative Analysis**: Compare performance against cohort and standards
+- **AI-Generated Insights**: Automated performance summaries and recommendations
 
-### 📋 Data Export and Reporting
-- **Structured Data Export**: Download extracted flight data as CSV
-- **Visual Display**: Interactive tables showing all flight entries
-- **Summary Statistics**: Clear display of total hours in each category
-- **Assessment Reports**: Detailed eligibility status for each license type
+### ✅ Validation Assessment
+- **Assessment Scheduling**: Plan and schedule formal validation assessments
+- **Structured Evaluation**: Comprehensive assessment forms for each competency area
+- **Certification Tracking**: Monitor progress toward certification requirements
+- **Assessment History**: Complete record of all validation assessments
+- **AI-Powered Analysis**: Predictive insights for certification readiness
+
+### 🤖 AI-Powered Features
+- **Performance Analysis**: AI analyzes trainee data to identify patterns and trends
+- **Personalized Recommendations**: Tailored training suggestions based on individual needs
+- **Automated Summaries**: AI-generated performance reports and evaluations
+- **Predictive Modeling**: Estimate time to certification and competency targets
+- **Risk Identification**: Highlight areas requiring immediate attention
 
 ## 🏗️ System Requirements
 
 - **Python**: 3.10 or higher
 - **Dependencies**: All required packages listed in `requirements.txt`
-- **API Access**: OpenAI API key required for AI vision processing (GPT-4o or GPT-4 Vision)
+- **API Access**: OpenAI API key for AI-powered features (GPT-4o recommended)
 
 ## ⚙️ Setup Instructions
 
 ### 1. AI Service Configuration
 
-The application supports both **OpenAI** and **Azure OpenAI** services for vision-based logbook analysis.
+The application supports both **OpenAI** and **Azure OpenAI** services for AI-powered insights.
 
 #### OpenAI Configuration (Default)
 Add your OpenAI API key using one of these methods:
@@ -93,21 +94,10 @@ To use Azure OpenAI instead:
    }
    ```
 
-3. **Configuration Parameters**:
-   - `ai_source`: Set to `"azure"` for Azure OpenAI or `"trial"` for regular OpenAI
-   - `endpoint`: Your Azure OpenAI resource endpoint URL
-   - `model`: Your deployment name (must support vision - gpt-4o recommended)
-   - `temperature`: Lower values (0.2-0.3) for more consistent extraction
-   - `api_version`: Azure API version (recommended: "2024-08-01-preview")
-
-#### Model Requirements
-- **Vision Capability Required**: The model must support image input (GPT-4o, GPT-4 Vision, or equivalent)
-- **Recommended Model**: GPT-4o for best performance with handwritten text recognition
-
 ### 2. Installation
 ```bash
-# Clone the repository
-cd "Pilot Licensing"
+# Navigate to the project directory
+cd ATCO-training
 
 # Install dependencies
 pip install -r requirements.txt
@@ -122,159 +112,183 @@ The application will open in your default web browser at `http://localhost:8501`
 
 ## 📖 How to Use
 
-### Step 1: Upload Logbook Image
-1. Take a clear photo or scan of your pilot logbook page(s)
-2. Ensure the image is well-lit and text is legible
-3. Upload the image using the file uploader (supports PNG, JPG, JPEG, PDF)
+### Dashboard
+1. View trainee overview with key metrics
+2. Monitor competency scores across all eight areas
+3. Review competency radar chart showing current vs. target levels
+4. Track progress timeline over the training period
+5. Review recent training sessions
 
-### Step 2: Analyze Logbook
-1. Click the "🚀 Analyze Logbook" button
-2. The AI will process the image and extract flight data
-3. Progress updates will appear during processing
+### Training Plan
+1. Select trainee from dropdown
+2. Review current training plan status
+3. Add new training activities to the plan
+4. Generate AI-powered training recommendations
+5. Document training plan discussion notes
 
-### Step 3: Review Results
-- **Flight Hours Summary**: View total hours in each category
-- **Individual Flight Entries**: See extracted data in tabular format
-- **License Assessment**: Review eligibility for different license types
-- **Download Data**: Export flight data as CSV for your records
+### Performance Summary
+1. Select trainee and evaluation period
+2. Review overall performance metrics
+3. Analyze competency breakdown and trends
+4. View performance by session type
+5. Generate AI-powered performance analysis
+6. Export performance reports
 
-## 📚 Understanding Pilot License Requirements
+### Validation Assessment
+1. Schedule new assessments
+2. Conduct assessments using structured evaluation forms
+3. Rate competencies and document observations
+4. Generate AI-powered assessment insights
+5. Review assessment history
+6. Track certification progress
 
-### Private Pilot License (PPL)
-- Minimum 40-50 hours total flight time
-- At least 10 hours solo (PIC) time
-- At least 5 hours solo cross-country
-- At least 3 hours night flight
-- At least 3 hours instrument training
+## 🎓 Competency Scoring Framework
 
-### Commercial Pilot License (CPL)
-- Minimum 200-250 hours total flight time
-- At least 100 hours as PIC
-- At least 20 hours cross-country as PIC
-- At least 10 hours instrument training
-- At least 5 hours night flight
+### Proficient (80-100%)
+- Consistently meets or exceeds standards
+- Demonstrates mastery of competency
+- Requires minimal guidance
+- Ready for independent operation
 
-### Instrument Rating (IR)
-- Minimum 50 hours cross-country as PIC
-- At least 40 hours instrument time
-- At least 15 hours with authorized instructor
+### Developing (70-79%)
+- Generally meets standards
+- Shows ongoing progress
+- Requires some supervision
+- On track for proficiency
 
-### Airline Transport Pilot License (ATPL)
-- Minimum 1,500 hours total flight time
-- At least 500 hours cross-country
-- At least 100 hours night flight
-- At least 75 hours instrument time
-- At least 250 hours as PIC
+### Needs Improvement (<70%)
+- Below expected standards
+- Requires focused training
+- Needs close supervision
+- Improvement plan required
 
-*Note: Requirements may vary by jurisdiction (FAA, EASA, CAAS, etc.). Always verify with your local aviation authority.*
+### Target Performance
+All trainees must achieve **85% or higher** across all eight competency areas for certification.
 
 ## 🔧 Configuration
 
-### Logbook Extraction Rules
-The system uses AI prompts defined in `config.json` under `logbook_extraction_rules` to:
-- Identify logbook columns and structure
-- Extract data from handwritten entries
-- Interpret aviation abbreviations
-- Handle unclear or illegible entries
-- Calculate summary statistics
-
-### License Assessment Rules
-Assessment logic is defined in `license_assessment_rules` in `config.json`:
-- Defines requirements for each license type
-- Compares pilot hours against standards
-- Generates eligibility status and recommendations
+### AI Rules
+The system uses AI prompts defined in `config.json`:
+- **Performance Analysis Rules**: Guide AI in analyzing trainee performance data
+- **Training Recommendation Rules**: Define how AI generates training suggestions
+- **Assessment Evaluation Rules**: Structure AI-powered assessment insights
+- **ATC Competency Framework**: Define standards and requirements for each competency
 
 ### Customization
 You can customize the rules in `config.json` to:
-- Adjust extraction prompts for different logbook formats
-- Modify license requirements for specific jurisdictions
-- Add new license types or ratings
-- Change assessment criteria
+- Adjust AI analysis prompts
+- Modify competency framework definitions
+- Change target performance thresholds
+- Add new competency areas
+- Customize assessment criteria
 
 ## 🛠️ Technical Architecture
 
 ### Core Components
-- **streamlit_main.py**: Main application entry point and UI orchestration
-- **logbook_processor.py**: Image processing and data extraction logic
-- **ui_components.py**: Reusable UI components and display functions
+- **streamlit_main.py**: Main application entry point and page routing
+- **dashboard_page.py**: Main dashboard with progress tracking and metrics
+- **training_plan_page.py**: Training plan management and discussions
+- **performance_summary_page.py**: Detailed performance analytics
+- **validation_assessment_page.py**: Assessment scheduling and evaluation
+- **ui_components.py**: Reusable UI components and navigation
 - **config_manager.py**: Configuration management and API key handling
+- **about_page.py**: Project information and overview
+- **methodology_page.py**: System methodology and best practices
 - **config.json**: AI prompts, rules, and system configuration
 
-### AI Processing Flow
-1. User uploads logbook image
-2. Image is validated and encoded to base64
-3. Vision-enabled LLM analyzes the image
-4. AI extracts structured flight data (JSON format)
-5. Summary statistics are calculated
-6. License assessment LLM evaluates eligibility
-7. Results are displayed and available for download
+### Page Structure
+1. **Dashboard**: Overview and real-time progress tracking
+2. **Training Plan**: Collaborative planning and AI recommendations
+3. **Performance Summary**: Comprehensive analytics and insights
+4. **Validation Assessment**: Formal assessments and certification tracking
+5. **About Us**: Project information and objectives
+6. **Methodology**: System processes and best practices
 
-### Data Structure
-Extracted flight data includes:
-- Individual flight entries (array of objects)
-- Summary statistics (totals across categories)
-- Raw AI response (for debugging)
-- License assessment results
+### Data Visualization
+- **Plotly**: Interactive charts and graphs
+- **Pandas**: Data processing and analytics
+- **Streamlit**: Modern web interface and components
 
 ## 🔒 Privacy and Security
 
-- **Local Processing**: Image analysis happens via secure API calls
-- **No Data Storage**: Images and results are not permanently stored
-- **Session-Based**: Data exists only during your browser session
+- **Session-Based Data**: Data exists only during browser session
 - **API Security**: Use environment variables or Streamlit secrets for API keys
 - **Secure Transmission**: All API calls use HTTPS encryption
+- **No External Storage**: Training data remains within your environment
 
-## 📝 Tips for Best Results
+## 📝 Best Practices
 
-### Image Quality
-- Use good lighting when photographing logbook pages
-- Ensure text is in focus and legible
-- Avoid shadows or glare on the page
-- Higher resolution images yield better results
+### For Training Managers
+- Conduct weekly training plan reviews
+- Use AI recommendations as guidance, not directives
+- Document all assessment observations thoroughly
+- Provide timely, constructive feedback
+- Monitor trends across multiple trainees
 
-### Logbook Standards
-- Standard aviation logbook formats work best
-- Clearly written entries improve accuracy
-- Common abbreviations are recognized automatically
-- If extraction fails, try a clearer image
+### For Trainees
+- Review dashboard regularly to track progress
+- Be proactive in identifying focus areas
+- Engage actively in training plan discussions
+- Prepare for assessments by reviewing history
+- Use AI insights for self-directed learning
 
-### Verification
-- Always verify extracted data against your original logbook
-- Check summary totals for accuracy
-- Cross-reference with any digital logging systems
-- Use extracted data as a starting point, not final authority
+### For Administrators
+- Ensure data accuracy and completeness
+- Conduct regular system configuration reviews
+- Monitor AI model performance
+- Generate periodic effectiveness reports
+- Maintain certification standards
 
-## 🚧 Limitations
+## 🚀 Future Enhancements
 
-- **Handwriting Variability**: Very poor handwriting may reduce accuracy
-- **Image Quality**: Blurry or low-resolution images may not process well
-- **Non-Standard Formats**: Custom logbook layouts may need manual review
-- **Aviation Authority**: Requirements are general - verify with your specific authority
-- **Vision API Dependency**: Requires internet connection and API access
+### Planned Features
+- **Database Integration**: Persistent data storage
+- **Multi-Trainee Comparison**: Cohort analysis and benchmarking
+- **Email Notifications**: Automated alerts and reminders
+- **Report Generation**: PDF export for assessments and summaries
+- **Mobile Optimization**: Responsive design for mobile devices
+- **Advanced Analytics**: Machine learning for performance prediction
+- **Integration APIs**: Connect with existing training management systems
 
-## 🤝 Contributing
+### AI Enhancements
+- Real-time performance analysis during training sessions
+- Automated competency gap detection
+- Dynamic training path optimization
+- Predictive certification timeline modeling
+- Natural language query interface
 
-Based on the SCOUT (Smart Compliance Operations Unit Tool) framework. This pilot licensing variant demonstrates the versatility of AI-powered document analysis.
+## 🚧 Current Status
+
+This is an active development project. The current version includes:
+- ✅ Complete dashboard with competency tracking
+- ✅ Training plan management interface
+- ✅ Performance summary and analytics
+- ✅ Validation assessment system
+- ✅ AI integration placeholders for future enhancement
+- ✅ Modern, intuitive UI design
+
+### Note on AI Features
+AI-powered features currently show placeholder content demonstrating the intended functionality. Future versions will integrate with actual AI models for:
+- Real-time performance analysis
+- Dynamic training recommendations
+- Automated summary generation
+- Predictive modeling
 
 ## 📞 Support
 
-For technical issues:
-1. Check that your API keys are correctly configured
-2. Verify image quality and format
-3. Review error messages in the application
-4. Check the "Debug Info" expander for detailed logs
+For questions, issues, or feature requests:
+- Review the methodology page within the application
+- Check configuration settings in `config.json`
+- Consult your training administrator
+- Contact system support team
 
-## 📜 License
+## 📄 License
 
-This tool is adapted from the SCOUT framework for pilot licensing assessment purposes.
-
-## 🙏 Acknowledgments
-
-- Built with Streamlit for rapid web application development
-- Powered by OpenAI GPT-4o for vision and language understanding
-- Based on SCOUT compliance checking framework
-- Aviation regulations knowledge from FAA, EASA, and ICAO standards
+This project is developed for Air Traffic Controller training management purposes.
 
 ---
 
-**Disclaimer**: This tool provides estimates and assessments based on AI analysis of logbook images. Always verify requirements with your aviation authority and use official records for license applications. The tool is for informational and planning purposes only.
+**Powered by OpenAI GPT-4o | Built with Streamlit**
+
+
+**Disclaimer**: This tool provides AI-assisted analysis and recommendations for ATC training progress tracking. Always verify training requirements with your ATC training organization and use official records for certification and licensing purposes. The tool is for informational and planning purposes only.
