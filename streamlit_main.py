@@ -15,6 +15,8 @@ from ui_components import (
 )
 from dashboard_page import display_dashboard
 from training_plan_page import display_training_plan_page
+from training_session_page import display_training_session_page
+from dialogue_page import display_dialogue_page
 from performance_summary_page import display_performance_summary_page
 from validation_assessment_page import display_validation_assessment_page
 from about_page import display_about_page
@@ -44,6 +46,10 @@ def main():
             display_dashboard()
         elif current_page == 'Training Plan':
             display_training_plan_page()
+        elif current_page == 'Training Sessions':
+            display_training_session_page()
+        elif current_page == 'Dialogue Sessions':
+            display_dialogue_page()
         elif current_page == 'Performance Summary':
             display_performance_summary_page()
         elif current_page == 'Validation Assessment':

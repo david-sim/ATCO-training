@@ -398,3 +398,32 @@ def display_validation_assessment_page():
                 file_name="assessment_history.csv",
                 mime="text/csv"
             )
+    
+    st.markdown("---")
+    
+    # Declaration Checkbox
+    st.markdown("## ✍️ Validation Assessment Declaration")
+    
+    st.markdown("""
+    The following declaration confirms that the validation assessment has been conducted 
+    fairly and accurately by the training manager.
+    """)
+    
+    st.markdown("### 👨‍💼 Training Manager Declaration")
+    manager_declares = st.checkbox(
+        "I certify that this validation assessment has been conducted in accordance with ATC training standards, and the evaluation accurately reflects the trainee's demonstrated competencies.",
+        key="manager_declaration_va"
+    )
+    
+    if manager_declares:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            manager_signature = st.text_input("Training Manager Name", value="Robert Williams", disabled=True)
+        
+        with col2:
+            manager_date = st.date_input("Date", value=datetime.now(), key="manager_date_va")
+        
+        st.success("✅ Validation assessment has been certified and signed off by the training manager.")
+    else:
+        st.info("ℹ️ Please confirm the declaration to complete the validation assessment certification.")

@@ -32,16 +32,16 @@ def display_training_plan_page():
         )
     
     with col2:
-        st.info(f"**Current Training Phase:** On-The-Job Training\n\n**Training Manager:** Robert Williams")
+        st.info(f"**Current Training Phase: Training Phase #2\n\n**Training Manager:** Robert Williams")
     
     st.markdown("---")
     
     # Training Plan Overview
-    st.markdown("## 📊 Current Training Plan Overview")
+    st.markdown("## 📊 On-the-Job Training Overview")
     
     # Sample training plan data
     training_plan_data = {
-        'Phase': ['Foundation', 'Intermediate', 'Advanced', 'Final Assessment'],
+        'Phase': ['Phase 1', '100-hour dialogue', 'Performance Summary', 'Validation Assessment'],
         'Duration (weeks)': [4, 6, 6, 1],
         'Status': ['Completed', 'In Progress', 'Not Started', 'Not Started'],
         'Completion (%)': [100, 65, 0, 0],
@@ -66,6 +66,30 @@ def display_training_plan_page():
     
     styled_df = df_plan.style.applymap(color_status, subset=['Status'])
     st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    
+    st.markdown("---")
+    # Meeting Notes
+    st.markdown("## 📝 Training Objectives")
+    
+    meeting_notes = st.text_area(
+        "Discussion Summary",
+        placeholder="Enter key points discussed during the training plan meeting...",
+        height=200
+    )
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("💾 Save Notes", use_container_width=True):
+            st.success("Notes saved successfully!")
+    
+    with col2:
+        if st.button("📧 Email Summary", use_container_width=True):
+            st.info("Email summary feature coming soon!")
+    
+    with col3:
+        if st.button("📄 Generate Report", use_container_width=True):
+            st.info("Report generation feature coming soon!")
     
     st.markdown("---")
     
@@ -103,7 +127,7 @@ def display_training_plan_page():
         with col1:
             activity_type = st.selectbox(
                 "Activity Type",
-                ["Simulation", "Theory Session", "Practical Exercise", "Assessment", "Mentoring"]
+                ["Simulation", "Theory Session", "Tabletop Exercise", "Quiz Assessment"]
             )
         
         with col2:
@@ -190,30 +214,6 @@ def display_training_plan_page():
     
     st.markdown("---")
     
-    # Meeting Notes
-    st.markdown("## 📝 Meeting Notes")
-    
-    meeting_notes = st.text_area(
-        "Discussion Summary",
-        placeholder="Enter key points discussed during the training plan meeting...",
-        height=200
-    )
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("💾 Save Notes", use_container_width=True):
-            st.success("Notes saved successfully!")
-    
-    with col2:
-        if st.button("📧 Email Summary", use_container_width=True):
-            st.info("Email summary feature coming soon!")
-    
-    with col3:
-        if st.button("📄 Generate Report", use_container_width=True):
-            st.info("Report generation feature coming soon!")
-    
-    st.markdown("---")
     
     # Training History
     st.markdown("## 📚 Previous Training Plan Discussions")
@@ -232,3 +232,44 @@ def display_training_plan_page():
     
     df_history = pd.DataFrame(history_data)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
+    
+    st.markdown("---")
+    
+    # Declaration Checkboxes
+    st.markdown("## ✍️ Training Plan Signoff")
+    
+    st.markdown("""
+    The following declarations confirm that the training plan has been reviewed and agreed upon 
+    by both the trainee and the training manager.
+    """)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 👤 Trainee Declaration")
+        trainee_declares = st.checkbox(
+            "I acknowledge that I have reviewed and understood the training plan, and I commit to actively participating in all scheduled activities.",
+            key="trainee_declaration"
+        )
+        
+        if trainee_declares:
+            trainee_signature = st.text_input("Trainee Name", value=trainee_name, disabled=True)
+            trainee_date = st.date_input("Date", value=datetime.now(), key="trainee_date")
+    
+    with col2:
+        st.markdown("### 👨‍💼 Training Manager Declaration")
+        manager_declares = st.checkbox(
+            "I confirm that this training plan is appropriate for the trainee's current competency level and training objectives.",
+            key="manager_declaration_tp"
+        )
+        
+        if manager_declares:
+            manager_signature = st.text_input("Training Manager Name", value="Robert Williams", disabled=True)
+            manager_date = st.date_input("Date", value=datetime.now(), key="manager_date_tp")
+    
+    if trainee_declares and manager_declares:
+        st.success("✅ Training plan has been signed off by both trainee and training manager.")
+    elif trainee_declares or manager_declares:
+        st.warning("⚠️ Pending signature from both parties.")
+    else:
+        st.info("ℹ️ Please confirm the declarations to complete the training plan signoff.")

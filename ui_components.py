@@ -21,7 +21,7 @@ def display_sidebar():
     with st.sidebar:
         # Load and display main icon with transparent background
         try:
-            main_icon = Image.open("imgs/icon_transparent-color-nobg.png")
+            main_icon = Image.open("imgs/ATCO logo.png")
             st.image(main_icon, use_container_width=True)
         except:
             st.markdown("# 🎯")
@@ -39,6 +39,8 @@ def display_sidebar():
         page_options = [
             'Dashboard',
             'Training Plan',
+            'Training Sessions',
+            'Dialogue Sessions',
             'Performance Summary',
             'Validation Assessment',
             'About Us',

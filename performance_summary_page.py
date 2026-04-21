@@ -296,3 +296,32 @@ def display_performance_summary_page():
     with col3:
         if st.button("📧 Email Report", use_container_width=True):
             st.info("Email feature coming soon!")
+    
+    st.markdown("---")
+    
+    # Declaration Checkbox
+    st.markdown("## ✍️ Performance Summary Declaration")
+    
+    st.markdown("""
+    The following declaration confirms that the performance summary has been reviewed and 
+    verified by the training manager.
+    """)
+    
+    st.markdown("### 👨‍💼 Training Manager Declaration")
+    manager_declares = st.checkbox(
+        "I confirm that I have reviewed the performance data and assessments, and certify that this summary accurately reflects the trainee's performance during the evaluation period.",
+        key="manager_declaration_ps"
+    )
+    
+    if manager_declares:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            manager_signature = st.text_input("Training Manager Name", value="Robert Williams", disabled=True)
+        
+        with col2:
+            manager_date = st.date_input("Date", value=datetime.now(), key="manager_date_ps")
+        
+        st.success("✅ Performance summary has been verified and signed off by the training manager.")
+    else:
+        st.info("ℹ️ Please confirm the declaration to complete the performance summary verification.")
